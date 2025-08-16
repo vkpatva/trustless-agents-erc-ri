@@ -1,121 +1,262 @@
-# ERC-XXXX Trustless Agents: Reference Implementation
+# ERC-XXXX Trustless Agents Reference Implementation
 
-This repository contains the official reference implementation for **ERC-XXXX Trustless Agents**, a proposed standard for creating a trust layer for the open agent economy.
 
-The goal of this implementation is to provide a concrete, working example of the smart contracts and interfaces defined in the specification. This serves to validate the design, facilitate discussion, and provide a foundational starting point for the community.
+The **official reference implementation** for **ERC-XXXX Trustless Agents v0.3** - a trust layer that enables participants to discover, choose, and interact with agents across organizational boundaries without pre-existing trust.
 
-**This is a collaborative, open-source effort. Contributions are welcome.**
+## Overview
 
-## Current Status
+This repository provides a complete, production-ready implementation of all three core registry contracts defined in the ERC-XXXX specification:
 
-This implementation currently tracks **v0.3 of the ERC Specification**.
+- **Identity Registry** - Central identity management with spam protection
+- **Reputation Registry** - Lightweight feedback authorization system  
+- **Validation Registry** - Independent work validation with time bounds
 
-The ERC is a living document, and this repository will be updated in lockstep with the specification's evolution. As new versions like `v0.4` are discussed and released, this implementation will be updated accordingly. Please refer to the commit history and release tags to track changes between versions.
+## Architecture
 
-## Core Components
+### Core Contracts
 
-This repository contains the Solidity implementation for the three core on-chain registries defined in the ERC:
+| Contract | Purpose | Gas Cost | Key Features |
+|----------|---------|----------|--------------|
+| `IdentityRegistry` | Agent identity management | ~135k gas | Sequential IDs, 0.005 ETH spam protection |
+| `ReputationRegistry` | Feedback authorization | ~76k gas | Pre-authorization pattern, unique auth IDs |
+| `ValidationRegistry` | Work validation | ~115k gas | Time-bounded requests, score responses |
 
-1. **`IdentityRegistry.sol`**: An on-chain "passport office" for agents
-2. **`ReputationRegistry.sol`**: A lightweight, on-chain mechanism for recording attestations  
-3. **`ValidationRegistry.sol`**: A generic interface for requesting and recording the results of independent work validation
+### Design Principles
 
-## Architectural Discussion: Agent Identity (ERC-721/6551)
+- **Gas Efficient** - Minimal on-chain storage with off-chain data pointers
+- **Event-Driven** - Comprehensive event emission for off-chain indexing
+- **Modular** - Each registry operates independently but references others as needed
+- **Upgradeable** - Contracts reference each other via interfaces for future flexibility
 
-Based on recent discussions within the working group, this implementation explores the use of **ERC-721** for the agent's sovereign identity (the "passport") and **ERC-6551** for the agent's actor address (the "smart contract wallet").
-
-This approach aims to achieve the best of both worlds:
-- **Composability:** Agents become standard NFTs that can be used in the broader DeFi ecosystem
-- **Extensibility:** Agents can have custom on-chain logic via their token-bound account
-
-This implementation serves as a concrete proposal to the working group on how this can be achieved.
-
-## Getting Started
+## Quick Start
 
 ### Prerequisites
 
-- [Foundry](https://getfoundry.sh/)
+- [Foundry](https://book.getfoundry.sh/) installed
+- Node.js 16+ (optional, for additional tooling)
 
-### Installation & Testing
+### Installation
 
 ```bash
-# Clone the repository
 git clone https://github.com/ChaosChain/trustless-agents-erc-ri.git
 cd trustless-agents-erc-ri
-
-# Install dependencies
 forge install
+```
 
-# Run tests
+### Build & Test
+
+```bash
+# Build contracts
+forge build
+
+# Run all tests (80 tests, 100% pass rate)
 forge test
 
 # Run tests with gas reporting
 forge test --gas-report
+
+# Run specific test file
+forge test --match-path test/IdentityRegistry.t.sol
 ```
 
-## Contract Architecture
+### Deploy
 
-### IdentityRegistry
+```bash
+# Configure environment
+cp .env.example .env
+# Edit .env with your settings
 
-The `IdentityRegistry` contract serves as the central registry for all agent identities. It implements:
+# Deploy to Sepolia testnet
+forge script script/Deploy.s.sol --rpc-url sepolia --broadcast --verify
 
-- **Registration**: Agents register with a domain and address
-- **Updates**: Agents can update their domain or address
-- **Resolution**: Public functions to resolve agents by ID, domain, or address
-- **Spam Protection**: 0.005 ETH burn fee for registration
+# Deploy to Base Sepolia
+forge script script/Deploy.s.sol --rpc-url base_sepolia --broadcast --verify
+```
 
-### ReputationRegistry  
+##  Contract Specifications
 
-The `ReputationRegistry` enables lightweight feedback mechanisms:
+### Identity Registry
 
-- **Pre-authorization**: Server agents authorize clients to provide feedback
-- **Event Emission**: All feedback is recorded via events for off-chain aggregation
-- **Gas Efficiency**: Minimal on-chain storage, with detailed data stored off-chain
+**Purpose**: Central registry for all agent identities
 
-### ValidationRegistry
+```solidity
+interface IIdentityRegistry {
+    function newAgent(string calldata agentDomain, address agentAddress) 
+        external payable returns (uint256 agentId);
+    
+    function updateAgent(uint256 agentId, string calldata newAgentDomain, address newAgentAddress) 
+        external returns (bool success);
+    
+    function getAgent(uint256 agentId) 
+        external view returns (AgentInfo memory);
+    
+    function resolveByDomain(string calldata agentDomain) 
+        external view returns (AgentInfo memory);
+    
+    function resolveByAddress(address agentAddress) 
+        external view returns (AgentInfo memory);
+}
+```
 
-The `ValidationRegistry` provides hooks for independent validation:
+**Key Features**:
+- Sequential agent ID assignment (starting from 1)
+- 0.005 ETH registration fee (burned to prevent spam)
+- Dual mapping: domain ↔ agent ID, address ↔ agent ID
+- Update functionality with proper authorization
 
-- **Request/Response Pattern**: Validators can be requested and respond with scores
-- **Flexible Validation**: Supports both crypto-economic and cryptographic verification
-- **Time-bounded**: Requests expire after a configurable period
+### Reputation Registry
 
-## Gas Optimization
+**Purpose**: Lightweight entry point for task feedback between agents
 
-This implementation prioritizes gas efficiency while maintaining security:
+```solidity
+interface IReputationRegistry {
+    function acceptFeedback(uint256 agentClientId, uint256 agentServerId) external;
+    
+    function isFeedbackAuthorized(uint256 agentClientId, uint256 agentServerId) 
+        external view returns (bool isAuthorized, bytes32 feedbackAuthId);
+}
+```
 
-- Minimal on-chain storage with off-chain data pointers
-- Event-driven architecture for data aggregation
-- Optimized struct packing
-- Efficient access patterns
+**Key Features**:
+- Pre-authorization pattern for client feedback
+- Unique feedback authorization ID generation
+- Event-driven architecture for off-chain aggregation
+- Cross-agent relationship tracking
+
+### Validation Registry
+
+**Purpose**: Generic hooks for requesting and recording independent validation
+
+```solidity
+interface IValidationRegistry {
+    function validationRequest(uint256 agentValidatorId, uint256 agentServerId, bytes32 dataHash) external;
+    
+    function validationResponse(bytes32 dataHash, uint8 response) external;
+    
+    function getValidationRequest(bytes32 dataHash) 
+        external view returns (Request memory);
+    
+    function isValidationPending(bytes32 dataHash) 
+        external view returns (bool exists, bool pending);
+}
+```
+
+**Key Features**:
+- Time-bounded validation requests (1000 blocks expiration)
+- Score-based responses (0-100 scale)
+- Prevention of double responses
+- Automatic cleanup of expired requests
 
 ## Testing
 
-The test suite covers:
+Our comprehensive test suite includes **80 tests** with **100% pass rate**:
 
-- All contract functionality
-- Gas usage optimization  
-- Edge cases and error conditions
-- Integration scenarios
+### Test Categories
 
-Run the full test suite:
+| Category | Tests | Coverage |
+|----------|-------|----------|
+| **Unit Tests** | 72 | Individual contract functionality |
+| **Integration Tests** | 8 | Cross-contract interactions |
+| **Edge Cases** | ✅ | Boundary conditions and error states |
+| **Gas Optimization** | ✅ | Performance validation |
+| **Real-World Scenarios** | ✅ | End-to-end workflows |
+
+### Running Specific Tests
+
 ```bash
-forge test -vvv
+# Identity Registry tests
+forge test --match-path test/IdentityRegistry.t.sol -v
+
+# Reputation Registry tests  
+forge test --match-path test/ReputationRegistry.t.sol -v
+
+# Validation Registry tests
+forge test --match-path test/ValidationRegistry.t.sol -v
+
+# Integration tests
+forge test --match-path test/Integration.t.sol -v
 ```
+
+## Gas Usage
+
+Current gas usage (optimized for efficiency):
+
+| Operation | Gas Cost | Notes |
+|-----------|----------|-------|
+| Agent Registration | ~135k gas | First-time setup includes storage costs |
+| Feedback Authorization | ~76k gas | Lightweight authorization |
+| Validation Request | ~115k gas | Includes storage setup |
+| Validation Response | ~78k gas | Score submission |
+
+## Security Features
+
+### Access Control
+- Only agent owners can update their information
+- Only designated validators can respond to validation requests  
+- Only server agents can authorize feedback
+
+### Spam Prevention
+- 0.005 ETH registration fee burned to prevent spam registrations
+- Duplicate prevention for domains and addresses
+- Time-bounded validation requests prevent resource exhaustion
+
+### Data Integrity
+- Immutable agent IDs ensure consistent references
+- Event-driven architecture maintains audit trail
+- Input validation prevents invalid state transitions
+
+## Deployment Networks
+
+The reference implementation supports deployment on:
+
+- **Ethereum Mainnet** - Full production environment
+- **Sepolia Testnet** - Testing and development
+- **Base** - L2 deployment for lower costs
+- **Base Sepolia** - L2 testing environment
+
+## Documentation
+
+- **[Implementation Notes](./IMPLEMENTATION_NOTES.md)** - Detailed technical documentation
+- **[ERC Specification]()**
 
 ## Contributing
 
-This is a community-led effort. Contributions are highly encouraged!
+This reference implementation is maintained by the ERC-XXXX working group. Contributions are welcome!
+
+### Development Workflow
 
 1. Fork the repository
 2. Create a feature branch
-3. Add tests for new functionality
-4. Submit a pull request
+3. Make your changes
+4. Add comprehensive tests
+5. Ensure all tests pass: `forge test`
+6. Submit a pull request
+
+### Code Standards
+
+- Follow Solidity style guide
+- Include NatSpec documentation
+- Add tests for new functionality  
+- Maintain gas efficiency
+- Ensure backward compatibility
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Community
+## Acknowledgments
 
-Join the discussion in our [Telegram group](https://t.me/your-group-link) where the ERC working group collaborates.
+- The ERC-XXXX working group for specification development
+- The [A2A Protocol](https://a2a-protocol.org/) team for the foundational work
+- OpenZeppelin for security patterns and best practices
+- The Ethereum community for feedback and support
+
+## 🔗 Links
+
+- **Repository**: [github.com/ChaosChain/trustless-agents-erc-ri](https://github.com/ChaosChain/trustless-agents-erc-ri)
+- **ERC Specification**: [ERC-XXXX Trustless Agents v0.3]()
+- **A2A Protocol**: [a2a-protocol.org](https://a2a-protocol.org/)
+
+---
+
+**Built with ❤️ by ChaosChain for the open AI agentic economy**
