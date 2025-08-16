@@ -11,6 +11,7 @@ import "../src/interfaces/IReputationRegistry.sol";
  * @title ReputationRegistryTest
  * @dev Comprehensive test suite for the ReputationRegistry contract
  */
+ 
 contract ReputationRegistryTest is Test {
     IdentityRegistry public identityRegistry;
     ReputationRegistry public reputationRegistry;

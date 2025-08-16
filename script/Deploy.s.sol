@@ -45,4 +45,5 @@ contract Deploy is Script {
         console.log("\nRegistration fee:", identityRegistry.REGISTRATION_FEE());
         console.log("Validation expiration slots:", validationRegistry.getExpirationSlots());
     }
+    
 } 

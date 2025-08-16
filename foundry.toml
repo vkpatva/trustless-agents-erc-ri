@@ -17,6 +17,7 @@ sepolia = "${SEPOLIA_RPC_URL}"
 base = "${BASE_RPC_URL}"
 base_sepolia = "${BASE_SEPOLIA_RPC_URL}"
 
+
 # Etherscan verification
 [etherscan]
 mainnet = { key = "${ETHERSCAN_API_KEY}" }
