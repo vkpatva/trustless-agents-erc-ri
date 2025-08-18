@@ -1,11 +1,11 @@
-# ERC-XXXX Trustless Agents Reference Implementation
+# ERC-8004 Trustless Agents Reference Implementation
 
 
-The **official reference implementation** for **ERC-XXXX Trustless Agents v0.3** - a trust layer that enables participants to discover, choose, and interact with agents across organizational boundaries without pre-existing trust.
+The **official reference implementation** for **[ERC-8004 Trustless Agents v0.3](https://eips.ethereum.org/EIPS/eip-8004)** - a trust layer that enables participants to discover, choose, and interact with agents across organizational boundaries without pre-existing trust.
 
 ## Overview
 
-This repository provides a complete, production-ready implementation of all three core registry contracts defined in the ERC-XXXX specification:
+This repository provides a complete, production-ready implementation of all three core registry contracts defined in the ERC-8004 specification:
 
 - **Identity Registry** - Central identity management with spam protection
 - **Reputation Registry** - Lightweight feedback authorization system  
@@ -221,7 +221,7 @@ The reference implementation supports deployment on:
 
 ## Contributing
 
-This reference implementation is maintained by the ERC-XXXX working group. Contributions are welcome!
+This reference implementation is maintained by the ERC-8004 working group. Contributions are welcome!
 
 ### Development Workflow
 
@@ -246,7 +246,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Acknowledgments
 
-- The ERC-XXXX working group for specification development
+- The ERC-8004 working group for specification development
 - The [A2A Protocol](https://a2a-protocol.org/) team for the foundational work
 - OpenZeppelin for security patterns and best practices
 - The Ethereum community for feedback and support
@@ -254,7 +254,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🔗 Links
 
 - **Repository**: [github.com/ChaosChain/trustless-agents-erc-ri](https://github.com/ChaosChain/trustless-agents-erc-ri)
-- **ERC Specification**: [ERC-XXXX Trustless Agents v0.3]()
+- **ERC Specification**: [ERC-8004 Trustless Agents v0.3](https://eips.ethereum.org/EIPS/eip-8004)
 - **A2A Protocol**: [a2a-protocol.org](https://a2a-protocol.org/)
 
 ---

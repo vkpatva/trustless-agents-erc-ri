@@ -1,8 +1,8 @@
-# ERC-XXXX Trustless Agents Reference Implementation
+# ERC-8004 Trustless Agents Reference Implementation
 
 ## Overview
 
-This repository contains the official reference implementation for **ERC-XXXX Trustless Agents v0.3**, providing a complete, production-ready implementation of all three core registry contracts defined in the specification.
+This repository contains the official reference implementation for **[ERC-8004 Trustless Agents v0.3](https://eips.ethereum.org/EIPS/eip-8004)**, providing a complete, production-ready implementation of all three core registry contracts defined in the specification.
 
 ## Architecture
 
@@ -110,9 +110,9 @@ forge script script/Deploy.s.sol --rpc-url sepolia --broadcast --verify
 forge script script/Deploy.s.sol --rpc-url base_sepolia --broadcast --verify
 ```
 
-## Compliance with ERC-XXXX v0.3
+## Compliance with ERC-8004 v0.3
 
-This implementation fully complies with ERC-XXXX Trustless Agents v0.3 specification:
+This implementation fully complies with ERC-8004 Trustless Agents v0.3 specification:
 
 ✅ **Identity Registry**: All required functions and events implemented  
 ✅ **Reputation Registry**: Pre-authorization pattern with event emission  
@@ -142,8 +142,8 @@ As the ERC specification evolves (v0.4+), this implementation will be updated to
 
 ## Community
 
-This reference implementation is maintained by the ERC-XXXX working group and welcomes community contributions. All major changes should align with the evolving specification to maintain reference status.
+This reference implementation is maintained by the ERC-8004 working group and welcomes community contributions. All major changes should align with the evolving specification to maintain reference status.
 
 ---
 
-**Note**: This implementation tracks ERC-XXXX v0.3. Check the specification for the latest version and any required updates. 
+**Note**: This implementation tracks ERC-8004 v0.3. Check the specification for the latest version and any required updates. 

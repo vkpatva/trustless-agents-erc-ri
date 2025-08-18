@@ -116,5 +116,4 @@ contract ReputationRegistry is IReputationRegistry {
             )
         );
     }
-    
 } 

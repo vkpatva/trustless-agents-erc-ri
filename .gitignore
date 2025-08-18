@@ -1,6 +1,5 @@
 # Foundry build artifacts
 out/
-
 cache/
 
 # Dependencies
