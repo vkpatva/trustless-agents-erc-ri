@@ -12,7 +12,7 @@ interface IValidationRegistry {
     /**
      * @dev Emitted when a validation request is made
      */
-    event ValidationRequest(
+    event ValidationRequestEvent(
         uint256 indexed agentValidatorId,
         uint256 indexed agentServerId,
         bytes32 indexed dataHash
@@ -21,7 +21,7 @@ interface IValidationRegistry {
     /**
      * @dev Emitted when a validation response is submitted
      */
-    event ValidationResponse(
+    event ValidationResponseEvent(
         uint256 indexed agentValidatorId,
         uint256 indexed agentServerId,
         bytes32 indexed dataHash,

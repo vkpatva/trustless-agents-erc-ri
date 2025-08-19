@@ -34,13 +34,13 @@ contract ValidationRegistryTest is Test {
     bytes32 public testDataHash1 = keccak256("test-data-1");
     bytes32 public testDataHash2 = keccak256("test-data-2");
     
-    event ValidationRequest(
+    event ValidationRequestEvent(
         uint256 indexed agentValidatorId,
         uint256 indexed agentServerId,
         bytes32 indexed dataHash
     );
     
-    event ValidationResponse(
+    event ValidationResponseEvent(
         uint256 indexed agentValidatorId,
         uint256 indexed agentServerId,
         bytes32 indexed dataHash,
@@ -72,7 +72,7 @@ contract ValidationRegistryTest is Test {
 
     function test_ValidationRequest_Success() public {
         vm.expectEmit(true, true, true, false);
-        emit ValidationRequest(bobId, aliceId, testDataHash1);
+        emit ValidationRequestEvent(bobId, aliceId, testDataHash1);
         
         validationRegistry.validationRequest(bobId, aliceId, testDataHash1);
         
@@ -105,7 +105,7 @@ contract ValidationRegistryTest is Test {
         validationRegistry.validationRequest(bobId, aliceId, testDataHash1);
         
         vm.expectEmit(true, true, true, false);
-        emit ValidationRequest(bobId, aliceId, testDataHash1);
+        emit ValidationRequestEvent(bobId, aliceId, testDataHash1);
         
         // Second request with same data hash (should just emit event again)
         validationRegistry.validationRequest(bobId, aliceId, testDataHash1);
@@ -139,7 +139,7 @@ contract ValidationRegistryTest is Test {
         // Submit response
         vm.prank(bob);
         vm.expectEmit(true, true, true, true);
-        emit ValidationResponse(bobId, aliceId, testDataHash1, 85);
+        emit ValidationResponseEvent(bobId, aliceId, testDataHash1, 85);
         
         validationRegistry.validationResponse(testDataHash1, 85);
         

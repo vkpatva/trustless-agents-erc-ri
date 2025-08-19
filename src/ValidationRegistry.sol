@@ -68,7 +68,7 @@ contract ValidationRegistry is IValidationRegistry {
         if (existingRequest.dataHash != bytes32(0)) {
             if (block.number <= existingRequest.timestamp + EXPIRATION_SLOTS) {
                 // Request still exists and is valid, just emit the event again
-                emit ValidationRequest(agentValidatorId, agentServerId, dataHash);
+                emit ValidationRequestEvent(agentValidatorId, agentServerId, dataHash);
                 return;
             }
         }
@@ -82,7 +82,7 @@ contract ValidationRegistry is IValidationRegistry {
             responded: false
         });
         
-        emit ValidationRequest(agentValidatorId, agentServerId, dataHash);
+        emit ValidationRequestEvent(agentValidatorId, agentServerId, dataHash);
     }
     
     /**
@@ -125,7 +125,7 @@ contract ValidationRegistry is IValidationRegistry {
         _validationResponses[dataHash] = response;
         _hasResponse[dataHash] = true;
         
-        emit ValidationResponse(request.agentValidatorId, request.agentServerId, dataHash, response);
+        emit ValidationResponseEvent(request.agentValidatorId, request.agentServerId, dataHash, response);
     }
 
     // ============ Read Functions ============
