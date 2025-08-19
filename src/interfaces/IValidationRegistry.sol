@@ -104,4 +104,4 @@ interface IValidationRegistry {
      * @return slots Number of storage slots a request remains valid
      */
     function getExpirationSlots() external view returns (uint256 slots);
-} 
+}

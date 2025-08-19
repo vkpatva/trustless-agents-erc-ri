@@ -290,4 +290,4 @@ contract ReputationRegistryTest is Test {
         // Should be less than 10k gas (view function)
         assertLt(gasUsed, 10_000);
     }
-} 
+}

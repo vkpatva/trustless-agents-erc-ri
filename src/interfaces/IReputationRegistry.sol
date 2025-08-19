@@ -60,4 +60,4 @@ interface IReputationRegistry {
         uint256 agentClientId, 
         uint256 agentServerId
     ) external view returns (bytes32 feedbackAuthId);
-} 
+}

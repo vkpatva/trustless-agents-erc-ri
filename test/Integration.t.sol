@@ -428,4 +428,4 @@ contract IntegrationTest is Test {
         console.log("Validator (Charlie):", charlie);
         console.log("Final validation score:", validationScore, "/100");
     }
-} 
+}

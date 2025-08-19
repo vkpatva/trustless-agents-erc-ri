@@ -108,4 +108,4 @@ interface IIdentityRegistry {
      * @return fee The registration fee
      */
     function REGISTRATION_FEE() external pure returns (uint256 fee);
-} 
+}

@@ -170,4 +170,4 @@ contract ValidationRegistry is IValidationRegistry {
     function getExpirationSlots() external pure returns (uint256 slots) {
         return EXPIRATION_SLOTS;
     }
-} 
+}

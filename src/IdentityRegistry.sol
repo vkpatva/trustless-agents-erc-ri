@@ -195,4 +195,4 @@ contract IdentityRegistry is IIdentityRegistry {
     
     // Note: Registration fee is burned by keeping it locked in this contract
     // This is more gas-efficient than transferring to address(0)
-} 
+}

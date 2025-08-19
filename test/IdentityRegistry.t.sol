@@ -304,4 +304,4 @@ contract IdentityRegistryTest is Test {
         // Should be less than 100k gas
         assertLt(gasUsed, 100_000);
     }
-} 
+}

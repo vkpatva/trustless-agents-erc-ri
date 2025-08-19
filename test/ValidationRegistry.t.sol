@@ -419,4 +419,4 @@ contract ValidationRegistryTest is Test {
         // Should be less than 115k gas
         assertLt(gasUsed, 115_000);
     }
-} 
+}
