@@ -11,6 +11,18 @@ This repository provides a complete, production-ready implementation of all thre
 - **Reputation Registry** - Lightweight feedback authorization system  
 - **Validation Registry** - Independent work validation with time bounds
 
+
+## Live Example & Demo
+
+To see these contracts in a live, end-to-end workflow, check out our complete working example. It demonstrates how to build a full application with AI agents that interact trustlessly on-chain using the ERC-8004 standard.
+
+**Explore the ERC-8004 Example Repo:** **https://github.com/ChaosChain/erc-8004-example**
+
+The example includes:
+- **A full demonstration** of the agent registration, validation, and feedback lifecycle.
+- **A self-contained environment** that's easy to run and explore.
+
+
 ## Architecture
 
 ### Core Contracts
