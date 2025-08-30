@@ -7,7 +7,7 @@ The **official reference implementation** for **[ERC-8004 Trustless Agents v0.3]
 
 This repository provides a complete, production-ready implementation of all three core registry contracts defined in the ERC-8004 specification:
 
-- **Identity Registry** - Central identity management with spam protection
+- **Identity Registry** - Central identity management
 - **Reputation Registry** - Lightweight feedback authorization system  
 - **Validation Registry** - Independent work validation with time bounds
 
@@ -29,7 +29,7 @@ The example includes:
 
 | Contract | Purpose | Gas Cost | Key Features |
 |----------|---------|----------|--------------|
-| `IdentityRegistry` | Agent identity management | ~135k gas | Sequential IDs, 0.005 ETH spam protection |
+| `IdentityRegistry` | Agent identity management | ~142k gas | Sequential IDs, domain/address uniqueness |
 | `ReputationRegistry` | Feedback authorization | ~76k gas | Pre-authorization pattern, unique auth IDs |
 | `ValidationRegistry` | Work validation | ~115k gas | Time-bounded requests, score responses |
 
@@ -112,7 +112,7 @@ interface IIdentityRegistry {
 
 **Key Features**:
 - Sequential agent ID assignment (starting from 1)
-- 0.005 ETH registration fee (burned to prevent spam)
+
 - Dual mapping: domain ↔ agent ID, address ↔ agent ID
 - Update functionality with proper authorization
 
@@ -195,7 +195,7 @@ Current gas usage (optimized for efficiency):
 
 | Operation | Gas Cost | Notes |
 |-----------|----------|-------|
-| Agent Registration | ~135k gas | First-time setup includes storage costs |
+| Agent Registration | ~142k gas | First-time setup includes storage costs |
 | Feedback Authorization | ~76k gas | Lightweight authorization |
 | Validation Request | ~115k gas | Includes storage setup |
 | Validation Response | ~78k gas | Score submission |
@@ -208,7 +208,7 @@ Current gas usage (optimized for efficiency):
 - Only server agents can authorize feedback
 
 ### Spam Prevention
-- 0.005 ETH registration fee burned to prevent spam registrations
+
 - Duplicate prevention for domains and addresses
 - Time-bounded validation requests prevent resource exhaustion
 

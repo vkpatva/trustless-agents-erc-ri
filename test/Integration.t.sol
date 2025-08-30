@@ -52,16 +52,16 @@ contract IntegrationTest is Test {
         
         // Register all agents
         vm.prank(alice);
-        aliceId = identityRegistry.newAgent{value: identityRegistry.REGISTRATION_FEE()}(ALICE_DOMAIN, alice);
+        aliceId = identityRegistry.newAgent(ALICE_DOMAIN, alice);
         
         vm.prank(bob);
-        bobId = identityRegistry.newAgent{value: identityRegistry.REGISTRATION_FEE()}(BOB_DOMAIN, bob);
+        bobId = identityRegistry.newAgent(BOB_DOMAIN, bob);
         
         vm.prank(charlie);
-        charlieId = identityRegistry.newAgent{value: identityRegistry.REGISTRATION_FEE()}(CHARLIE_DOMAIN, charlie);
+        charlieId = identityRegistry.newAgent(CHARLIE_DOMAIN, charlie);
         
         vm.prank(david);
-        davidId = identityRegistry.newAgent{value: identityRegistry.REGISTRATION_FEE()}(DAVID_DOMAIN, david);
+        davidId = identityRegistry.newAgent(DAVID_DOMAIN, david);
     }
 
     // ============ Complete Task Lifecycle ============
@@ -284,7 +284,7 @@ contract IntegrationTest is Test {
         address eve = makeAddr("eve");
         vm.deal(eve, 1 ether);
         vm.prank(eve);
-        uint256 eveId = identityRegistry.newAgent{value: identityRegistry.REGISTRATION_FEE()}("eve.example.com", eve);
+        uint256 eveId = identityRegistry.newAgent("eve.example.com", eve);
         
         assertEq(identityRegistry.getAgentCount(), 5);
         assertTrue(identityRegistry.agentExists(eveId));
@@ -357,7 +357,7 @@ contract IntegrationTest is Test {
         address newAgent = makeAddr("newAgent");
         vm.deal(newAgent, 1 ether);
         vm.prank(newAgent);
-        uint256 newAgentId = identityRegistry.newAgent{value: identityRegistry.REGISTRATION_FEE()}("new.example.com", newAgent);
+        uint256 newAgentId = identityRegistry.newAgent("new.example.com", newAgent);
         
         // 2. Authorize feedback
         vm.prank(alice);

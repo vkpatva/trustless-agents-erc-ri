@@ -43,7 +43,7 @@ contract IdentityRegistryTest is Test {
         vm.expectEmit(true, false, false, true);
         emit AgentRegistered(1, ALICE_DOMAIN, alice);
         
-        uint256 agentId = registry.newAgent{value: registry.REGISTRATION_FEE()}(ALICE_DOMAIN, alice);
+        uint256 agentId = registry.newAgent(ALICE_DOMAIN, alice);
         
         assertEq(agentId, 1);
         assertEq(registry.getAgentCount(), 1);
@@ -53,79 +53,63 @@ contract IdentityRegistryTest is Test {
     function test_NewAgent_MultipleAgents() public {
         // Register Alice
         vm.prank(alice);
-        uint256 aliceId = registry.newAgent{value: registry.REGISTRATION_FEE()}(ALICE_DOMAIN, alice);
+        uint256 aliceId = registry.newAgent(ALICE_DOMAIN, alice);
         
         // Register Bob
         vm.prank(bob);
-        uint256 bobId = registry.newAgent{value: registry.REGISTRATION_FEE()}(BOB_DOMAIN, bob);
+        uint256 bobId = registry.newAgent(BOB_DOMAIN, bob);
         
         assertEq(aliceId, 1);
         assertEq(bobId, 2);
         assertEq(registry.getAgentCount(), 2);
     }
 
-    function test_NewAgent_RevertInsufficientFee() public {
-        vm.prank(alice);
-        
-        vm.expectRevert(IIdentityRegistry.InsufficientFee.selector);
-        registry.newAgent{value: 0.001 ether}(ALICE_DOMAIN, alice);
-        
-        vm.expectRevert(IIdentityRegistry.InsufficientFee.selector);
-        registry.newAgent{value: 0.01 ether}(ALICE_DOMAIN, alice);
-    }
+
 
     function test_NewAgent_RevertInvalidDomain() public {
         vm.prank(alice);
         
         vm.expectRevert(IIdentityRegistry.InvalidDomain.selector);
-        registry.newAgent{value: 0.005 ether}("", alice);
+        registry.newAgent("", alice);
     }
 
     function test_NewAgent_RevertInvalidAddress() public {
         vm.prank(alice);
         
         vm.expectRevert(IIdentityRegistry.InvalidAddress.selector);
-        registry.newAgent{value: 0.005 ether}(ALICE_DOMAIN, address(0));
+        registry.newAgent(ALICE_DOMAIN, address(0));
     }
 
     function test_NewAgent_RevertDomainAlreadyRegistered() public {
         // Register Alice first
         vm.prank(alice);
-        registry.newAgent{value: 0.005 ether}(ALICE_DOMAIN, alice);
+        registry.newAgent(ALICE_DOMAIN, alice);
         
         // Try to register Bob with same domain
         vm.prank(bob);
         vm.expectRevert(IIdentityRegistry.DomainAlreadyRegistered.selector);
-        registry.newAgent{value: 0.005 ether}(ALICE_DOMAIN, bob);
+        registry.newAgent(ALICE_DOMAIN, bob);
     }
 
     function test_NewAgent_RevertAddressAlreadyRegistered() public {
         // Register Alice first
         vm.prank(alice);
-        registry.newAgent{value: 0.005 ether}(ALICE_DOMAIN, alice);
+        registry.newAgent(ALICE_DOMAIN, alice);
         
         // Try to register Alice again with different domain
         vm.prank(alice);
         vm.expectRevert(IIdentityRegistry.AddressAlreadyRegistered.selector);
-        registry.newAgent{value: 0.005 ether}(BOB_DOMAIN, alice);
+        registry.newAgent(BOB_DOMAIN, alice);
     }
 
-    function test_NewAgent_EthBurned() public {
-        uint256 balanceBefore = address(registry).balance;
-        
-        vm.prank(alice);
-        registry.newAgent{value: registry.REGISTRATION_FEE()}(ALICE_DOMAIN, alice);
-        
-        uint256 balanceAfter = address(registry).balance;
-        assertEq(balanceAfter - balanceBefore, registry.REGISTRATION_FEE());
-    }
+
 
     // ============ Update Tests ============
 
     function test_UpdateAgent_Domain() public {
         // Register Alice
         vm.prank(alice);
-        uint256 agentId = registry.newAgent{value: registry.REGISTRATION_FEE()}(ALICE_DOMAIN, alice);
+        uint256 agentId = registry.newAgent(ALICE_DOMAIN, alice);
         
         // Update domain
         string memory newDomain = "alice-new.example.com";
@@ -146,7 +130,7 @@ contract IdentityRegistryTest is Test {
     function test_UpdateAgent_Address() public {
         // Register Alice
         vm.prank(alice);
-        uint256 agentId = registry.newAgent{value: registry.REGISTRATION_FEE()}(ALICE_DOMAIN, alice);
+        uint256 agentId = registry.newAgent(ALICE_DOMAIN, alice);
         
         // Update address
         vm.prank(alice);
@@ -162,7 +146,7 @@ contract IdentityRegistryTest is Test {
     function test_UpdateAgent_Both() public {
         // Register Alice
         vm.prank(alice);
-        uint256 agentId = registry.newAgent{value: registry.REGISTRATION_FEE()}(ALICE_DOMAIN, alice);
+        uint256 agentId = registry.newAgent(ALICE_DOMAIN, alice);
         
         // Update both
         string memory newDomain = "alice-new.example.com";
@@ -185,7 +169,7 @@ contract IdentityRegistryTest is Test {
     function test_UpdateAgent_RevertUnauthorized() public {
         // Register Alice
         vm.prank(alice);
-        uint256 agentId = registry.newAgent{value: registry.REGISTRATION_FEE()}(ALICE_DOMAIN, alice);
+        uint256 agentId = registry.newAgent(ALICE_DOMAIN, alice);
         
         // Try to update from different account
         vm.prank(bob);
@@ -196,10 +180,10 @@ contract IdentityRegistryTest is Test {
     function test_UpdateAgent_RevertDomainAlreadyRegistered() public {
         // Register Alice and Bob
         vm.prank(alice);
-        uint256 aliceId = registry.newAgent{value: registry.REGISTRATION_FEE()}(ALICE_DOMAIN, alice);
+        uint256 aliceId = registry.newAgent(ALICE_DOMAIN, alice);
         
         vm.prank(bob);
-        registry.newAgent{value: registry.REGISTRATION_FEE()}(BOB_DOMAIN, bob);
+        registry.newAgent(BOB_DOMAIN, bob);
         
         // Try to update Alice to Bob's domain
         vm.prank(alice);
@@ -210,10 +194,10 @@ contract IdentityRegistryTest is Test {
     function test_UpdateAgent_RevertAddressAlreadyRegistered() public {
         // Register Alice and Bob
         vm.prank(alice);
-        uint256 aliceId = registry.newAgent{value: registry.REGISTRATION_FEE()}(ALICE_DOMAIN, alice);
+        uint256 aliceId = registry.newAgent(ALICE_DOMAIN, alice);
         
         vm.prank(bob);
-        registry.newAgent{value: registry.REGISTRATION_FEE()}(BOB_DOMAIN, bob);
+        registry.newAgent(BOB_DOMAIN, bob);
         
         // Try to update Alice to Bob's address
         vm.prank(alice);
@@ -225,7 +209,7 @@ contract IdentityRegistryTest is Test {
 
     function test_GetAgent() public {
         vm.prank(alice);
-        uint256 agentId = registry.newAgent{value: registry.REGISTRATION_FEE()}(ALICE_DOMAIN, alice);
+        uint256 agentId = registry.newAgent(ALICE_DOMAIN, alice);
         
         IIdentityRegistry.AgentInfo memory info = registry.getAgent(agentId);
         assertEq(info.agentId, agentId);
@@ -240,7 +224,7 @@ contract IdentityRegistryTest is Test {
 
     function test_ResolveByDomain() public {
         vm.prank(alice);
-        uint256 agentId = registry.newAgent{value: registry.REGISTRATION_FEE()}(ALICE_DOMAIN, alice);
+        uint256 agentId = registry.newAgent(ALICE_DOMAIN, alice);
         
         IIdentityRegistry.AgentInfo memory info = registry.resolveByDomain(ALICE_DOMAIN);
         assertEq(info.agentId, agentId);
@@ -255,7 +239,7 @@ contract IdentityRegistryTest is Test {
 
     function test_ResolveByAddress() public {
         vm.prank(alice);
-        uint256 agentId = registry.newAgent{value: registry.REGISTRATION_FEE()}(ALICE_DOMAIN, alice);
+        uint256 agentId = registry.newAgent(ALICE_DOMAIN, alice);
         
         IIdentityRegistry.AgentInfo memory info = registry.resolveByAddress(alice);
         assertEq(info.agentId, agentId);
@@ -272,7 +256,7 @@ contract IdentityRegistryTest is Test {
         assertFalse(registry.agentExists(1));
         
         vm.prank(alice);
-        uint256 agentId = registry.newAgent{value: registry.REGISTRATION_FEE()}(ALICE_DOMAIN, alice);
+        uint256 agentId = registry.newAgent(ALICE_DOMAIN, alice);
         
         assertTrue(registry.agentExists(agentId));
         assertFalse(registry.agentExists(agentId + 1));
@@ -283,7 +267,7 @@ contract IdentityRegistryTest is Test {
     function test_Gas_NewAgent() public {
         vm.prank(alice);
         uint256 gasStart = gasleft();
-        registry.newAgent{value: registry.REGISTRATION_FEE()}(ALICE_DOMAIN, alice);
+        registry.newAgent(ALICE_DOMAIN, alice);
         uint256 gasUsed = gasStart - gasleft();
         
         console.log("Gas used for newAgent:", gasUsed);
@@ -293,7 +277,7 @@ contract IdentityRegistryTest is Test {
 
     function test_Gas_UpdateAgent() public {
         vm.prank(alice);
-        uint256 agentId = registry.newAgent{value: registry.REGISTRATION_FEE()}(ALICE_DOMAIN, alice);
+        uint256 agentId = registry.newAgent(ALICE_DOMAIN, alice);
         
         vm.prank(alice);
         uint256 gasStart = gasleft();

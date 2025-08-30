@@ -12,8 +12,7 @@ import "./interfaces/IIdentityRegistry.sol";
 contract IdentityRegistry is IIdentityRegistry {
     // ============ Constants ============
     
-    /// @dev Registration fee of 0.005 ETH that gets burned
-    uint256 public constant REGISTRATION_FEE = 0.005 ether;
+
 
     // ============ State Variables ============
     
@@ -44,12 +43,7 @@ contract IdentityRegistry is IIdentityRegistry {
     function newAgent(
         string calldata agentDomain, 
         address agentAddress
-    ) external payable returns (uint256 agentId) {
-        // Validate fee
-        if (msg.value != REGISTRATION_FEE) {
-            revert InsufficientFee();
-        }
-        
+    ) external returns (uint256 agentId) {
         // Validate inputs
         if (bytes(agentDomain).length == 0) {
             revert InvalidDomain();
@@ -80,8 +74,7 @@ contract IdentityRegistry is IIdentityRegistry {
         _domainToAgentId[agentDomain] = agentId;
         _addressToAgentId[agentAddress] = agentId;
         
-        // Burn the registration fee by not forwarding it anywhere
-        // The ETH stays locked in this contract forever
+
         
         emit AgentRegistered(agentId, agentDomain, agentAddress);
     }
@@ -193,6 +186,5 @@ contract IdentityRegistry is IIdentityRegistry {
 
     // ============ Internal Functions ============
     
-    // Note: Registration fee is burned by keeping it locked in this contract
-    // This is more gas-efficient than transferring to address(0)
+
 }

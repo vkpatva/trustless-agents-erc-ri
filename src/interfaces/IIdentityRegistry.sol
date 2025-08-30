@@ -36,7 +36,7 @@ interface IIdentityRegistry {
     error UnauthorizedUpdate();
     error InvalidDomain();
     error InvalidAddress();
-    error InsufficientFee();
+
     error DomainAlreadyRegistered();
     error AddressAlreadyRegistered();
 
@@ -47,9 +47,8 @@ interface IIdentityRegistry {
      * @param agentDomain The domain where the agent's AgentCard is hosted
      * @param agentAddress The EVM address of the agent
      * @return agentId The unique identifier assigned to the agent
-     * @notice Requires 0.005 ETH fee which is burned
      */
-    function newAgent(string calldata agentDomain, address agentAddress) external payable returns (uint256 agentId);
+    function newAgent(string calldata agentDomain, address agentAddress) external returns (uint256 agentId);
     
     /**
      * @dev Update an existing agent's information
@@ -101,11 +100,5 @@ interface IIdentityRegistry {
      */
     function agentExists(uint256 agentId) external view returns (bool exists);
 
-    // ============ Constants ============
-    
-    /**
-     * @dev Registration fee in wei (0.005 ETH)
-     * @return fee The registration fee
-     */
-    function REGISTRATION_FEE() external pure returns (uint256 fee);
+
 }

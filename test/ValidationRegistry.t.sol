@@ -59,13 +59,13 @@ contract ValidationRegistryTest is Test {
         
         // Register test agents
         vm.prank(alice);
-        aliceId = identityRegistry.newAgent{value: identityRegistry.REGISTRATION_FEE()}(ALICE_DOMAIN, alice);
+        aliceId = identityRegistry.newAgent(ALICE_DOMAIN, alice);
         
         vm.prank(bob);
-        bobId = identityRegistry.newAgent{value: identityRegistry.REGISTRATION_FEE()}(BOB_DOMAIN, bob);
+        bobId = identityRegistry.newAgent(BOB_DOMAIN, bob);
         
         vm.prank(charlie);
-        charlieId = identityRegistry.newAgent{value: identityRegistry.REGISTRATION_FEE()}(CHARLIE_DOMAIN, charlie);
+        charlieId = identityRegistry.newAgent(CHARLIE_DOMAIN, charlie);
     }
 
     // ============ Validation Request Tests ============
