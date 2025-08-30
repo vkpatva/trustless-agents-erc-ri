@@ -50,6 +50,7 @@ interface IValidationRegistry {
     error RequestExpired();
     error InvalidResponse();
     error InvalidDataHash();
+    error SelfValidationNotAllowed();
 
     // ============ Write Functions ============
     

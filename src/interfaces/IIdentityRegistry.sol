@@ -34,9 +34,9 @@ interface IIdentityRegistry {
     
     error AgentNotFound();
     error UnauthorizedUpdate();
+    error UnauthorizedRegistration();
     error InvalidDomain();
     error InvalidAddress();
-
     error DomainAlreadyRegistered();
     error AddressAlreadyRegistered();
 

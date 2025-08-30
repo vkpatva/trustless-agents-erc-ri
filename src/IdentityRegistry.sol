@@ -12,7 +12,8 @@ import "./interfaces/IIdentityRegistry.sol";
 contract IdentityRegistry is IIdentityRegistry {
     // ============ Constants ============
     
-
+    /// @dev Contract version for tracking implementation changes
+    string public constant VERSION = "1.0.0";
 
     // ============ State Variables ============
     
@@ -44,6 +45,11 @@ contract IdentityRegistry is IIdentityRegistry {
         string calldata agentDomain, 
         address agentAddress
     ) external returns (uint256 agentId) {
+        // SECURITY: Only allow registration of own address to prevent impersonation
+        if (msg.sender != agentAddress) {
+            revert UnauthorizedRegistration();
+        }
+        
         // Validate inputs
         if (bytes(agentDomain).length == 0) {
             revert InvalidDomain();
@@ -52,8 +58,11 @@ contract IdentityRegistry is IIdentityRegistry {
             revert InvalidAddress();
         }
         
-        // Check for duplicates
-        if (_domainToAgentId[agentDomain] != 0) {
+        // SECURITY: Normalize domain to lowercase to prevent case-variance bypass
+        string memory normalizedDomain = _toLowercase(agentDomain);
+        
+        // Check for duplicates using normalized domain
+        if (_domainToAgentId[normalizedDomain] != 0) {
             revert DomainAlreadyRegistered();
         }
         if (_addressToAgentId[agentAddress] != 0) {
@@ -63,15 +72,15 @@ contract IdentityRegistry is IIdentityRegistry {
         // Assign new agent ID
         agentId = _agentIdCounter++;
         
-        // Store agent info
+        // Store agent info with original domain (for display) but use normalized for lookups
         _agents[agentId] = AgentInfo({
             agentId: agentId,
-            agentDomain: agentDomain,
+            agentDomain: agentDomain, // Store original case for display
             agentAddress: agentAddress
         });
         
-        // Create lookup mappings
-        _domainToAgentId[agentDomain] = agentId;
+        // Create lookup mappings using normalized domain
+        _domainToAgentId[normalizedDomain] = agentId;
         _addressToAgentId[agentAddress] = agentId;
         
 
@@ -152,7 +161,9 @@ contract IdentityRegistry is IIdentityRegistry {
      * @inheritdoc IIdentityRegistry
      */
     function resolveByDomain(string calldata agentDomain) external view returns (AgentInfo memory agentInfo) {
-        uint256 agentId = _domainToAgentId[agentDomain];
+        // SECURITY: Normalize domain for lookup to prevent case-variance bypass
+        string memory normalizedDomain = _toLowercase(agentDomain);
+        uint256 agentId = _domainToAgentId[normalizedDomain];
         if (agentId == 0) {
             revert AgentNotFound();
         }
@@ -186,5 +197,24 @@ contract IdentityRegistry is IIdentityRegistry {
 
     // ============ Internal Functions ============
     
-
+    /**
+     * @dev Converts a string to lowercase to prevent case-variance bypass attacks
+     * @param str The input string to convert
+     * @return result The lowercase version of the input string
+     */
+    function _toLowercase(string memory str) internal pure returns (string memory result) {
+        bytes memory strBytes = bytes(str);
+        bytes memory resultBytes = new bytes(strBytes.length);
+        
+        for (uint256 i = 0; i < strBytes.length; i++) {
+            // Convert A-Z to a-z
+            if (strBytes[i] >= 0x41 && strBytes[i] <= 0x5A) {
+                resultBytes[i] = bytes1(uint8(strBytes[i]) + 32);
+            } else {
+                resultBytes[i] = strBytes[i];
+            }
+        }
+        
+        result = string(resultBytes);
+    }
 }

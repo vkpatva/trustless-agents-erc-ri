@@ -11,6 +11,11 @@ import "./interfaces/IIdentityRegistry.sol";
  * @author ChaosChain Labs
  */
 contract ReputationRegistry is IReputationRegistry {
+    // ============ Constants ============
+    
+    /// @dev Contract version for tracking implementation changes
+    string public constant VERSION = "1.0.0";
+    
     // ============ State Variables ============
     
     /// @dev Reference to the IdentityRegistry for agent validation
@@ -111,8 +116,8 @@ contract ReputationRegistry is IReputationRegistry {
                 agentClientId,
                 agentServerId,
                 block.timestamp,
-                block.difficulty, // Use block.difficulty for additional entropy
-                tx.origin
+                block.prevrandao, // Use block.prevrandao for additional entropy (post-merge)
+                msg.sender // Use msg.sender for meta-transaction compatibility
             )
         );
     }

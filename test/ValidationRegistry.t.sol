@@ -361,15 +361,9 @@ contract ValidationRegistryTest is Test {
     // ============ Edge Cases ============
 
     function test_EdgeCase_SelfValidation() public {
-        // Agent validating their own work
+        // SECURITY: Self-validation should now be prevented
+        vm.expectRevert(IValidationRegistry.SelfValidationNotAllowed.selector);
         validationRegistry.validationRequest(aliceId, aliceId, testDataHash1);
-        
-        vm.prank(alice);
-        validationRegistry.validationResponse(testDataHash1, 100);
-        
-        (bool hasResponse, uint8 response) = validationRegistry.getValidationResponse(testDataHash1);
-        assertTrue(hasResponse);
-        assertEq(response, 100);
     }
 
     function test_EdgeCase_ZeroAgentIds() public {
@@ -418,5 +412,16 @@ contract ValidationRegistryTest is Test {
         console.log("Gas used for validationResponse:", gasUsed);
         // Should be less than 115k gas
         assertLt(gasUsed, 115_000);
+    }
+    
+    // ============ Security Tests ============
+    
+    function test_Security_PreventSelfValidation() public {
+        // Test that agents cannot validate themselves
+        vm.expectRevert(IValidationRegistry.SelfValidationNotAllowed.selector);
+        validationRegistry.validationRequest(aliceId, aliceId, testDataHash1);
+        
+        vm.expectRevert(IValidationRegistry.SelfValidationNotAllowed.selector);
+        validationRegistry.validationRequest(bobId, bobId, testDataHash2);
     }
 }

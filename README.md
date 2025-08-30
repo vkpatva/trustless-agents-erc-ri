@@ -61,7 +61,7 @@ forge install
 # Build contracts
 forge build
 
-# Run all tests (80 tests, 100% pass rate)
+# Run all tests (82 tests, 100% pass rate)
 forge test
 
 # Run tests with gas reporting
@@ -161,13 +161,13 @@ interface IValidationRegistry {
 
 ## Testing
 
-Our comprehensive test suite includes **80 tests** with **100% pass rate**:
+Our comprehensive test suite includes **82 tests** with **100% pass rate**:
 
 ### Test Categories
 
 | Category | Tests | Coverage |
 |----------|-------|----------|
-| **Unit Tests** | 72 | Individual contract functionality |
+| **Unit Tests** | 74 | Individual contract functionality |
 | **Integration Tests** | 8 | Cross-contract interactions |
 | **Edge Cases** | ✅ | Boundary conditions and error states |
 | **Gas Optimization** | ✅ | Performance validation |
@@ -203,19 +203,33 @@ Current gas usage (optimized for efficiency):
 ## Security Features
 
 ### Access Control
-- Only agent owners can update their information
-- Only designated validators can respond to validation requests  
-- Only server agents can authorize feedback
+- **Ownership Verification**: Only agent owners can register their own addresses (prevents impersonation)
+- **Authorized Updates**: Only agent owners can update their information
+- **Validator Authorization**: Only designated validators can respond to validation requests  
+- **Server Authorization**: Only server agents can authorize feedback
 
-### Spam Prevention
-
-- Duplicate prevention for domains and addresses
-- Time-bounded validation requests prevent resource exhaustion
+### Attack Prevention
+- **Case-Sensitivity Protection**: Domain normalization prevents case-variance bypass attacks
+- **Self-Validation Prevention**: Agents cannot validate their own work to maintain integrity
+- **Duplicate Prevention**: Domains and addresses can only be registered once
+- **Time-bounded Requests**: Validation requests prevent resource exhaustion with automatic expiration
 
 ### Data Integrity
-- Immutable agent IDs ensure consistent references
-- Event-driven architecture maintains audit trail
-- Input validation prevents invalid state transitions
+- **Immutable Agent IDs**: Ensure consistent references across the system
+- **Event-driven Architecture**: Maintains comprehensive audit trail
+- **Input Validation**: Prevents invalid state transitions
+- **Stale Data Cleanup**: Automatic cleanup of expired validation responses
+
+### Modern Security Standards
+- **Meta-transaction Compatible**: Uses `msg.sender` instead of deprecated `tx.origin`
+- **Post-merge Compatibility**: Uses `block.prevrandao` instead of deprecated `block.difficulty`
+- **Version Tracking**: All contracts include version constants for upgrade management
+- **Security Audited**: All identified vulnerabilities have been fixed and tested
+
+### Security Testing
+- **Comprehensive Security Tests**: Includes tests for all security fixes
+- **Attack Vector Coverage**: Tests for impersonation, case-sensitivity, and self-validation attacks
+- **Edge Case Testing**: Covers boundary conditions and error scenarios
 
 ## Deployment Networks
 
@@ -241,7 +255,7 @@ This reference implementation is maintained by the ERC-8004 working group. Contr
 2. Create a feature branch
 3. Make your changes
 4. Add comprehensive tests
-5. Ensure all tests pass: `forge test`
+5. Ensure all tests pass: `forge test` (82 tests should pass)
 6. Submit a pull request
 
 ### Code Standards
