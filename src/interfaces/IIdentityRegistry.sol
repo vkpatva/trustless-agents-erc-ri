@@ -3,7 +3,7 @@ pragma solidity ^0.8.19;
 
 /**
  * @title IIdentityRegistry
- * @dev Interface for the Identity Registry as defined in ERC-8004 Trustless Agents v0.3
+ * @dev Interface for the Identity Registry as defined in ERC-8004 Trustless Agents
  * @notice This contract serves as the central registry for all agent identities
  */
 interface IIdentityRegistry {

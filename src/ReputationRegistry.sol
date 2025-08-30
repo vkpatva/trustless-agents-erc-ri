@@ -6,7 +6,7 @@ import "./interfaces/IIdentityRegistry.sol";
 
 /**
  * @title ReputationRegistry
- * @dev Implementation of the Reputation Registry for ERC-XXXX Trustless Agents v0.3
+ * @dev Implementation of the Reputation Registry for ERC-8004 Trustless Agents
  * @notice Lightweight entry point for task feedback between agents
  * @author ChaosChain Labs
  */

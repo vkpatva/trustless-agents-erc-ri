@@ -81,7 +81,7 @@ contract ValidationRegistryTest is Test {
         assertEq(request.agentValidatorId, bobId);
         assertEq(request.agentServerId, aliceId);
         assertEq(request.dataHash, testDataHash1);
-        assertEq(request.timestamp, block.number);
+        assertEq(request.timestamp, block.timestamp);
         assertFalse(request.responded);
     }
 
@@ -213,7 +213,7 @@ contract ValidationRegistryTest is Test {
         validationRegistry.validationRequest(bobId, aliceId, testDataHash1);
         
         // Fast forward past expiration
-        vm.roll(block.number + validationRegistry.getExpirationSlots() + 1);
+        vm.warp(block.timestamp + validationRegistry.getExpirationSlots() + 1);
         
         vm.prank(bob);
         vm.expectRevert(IValidationRegistry.RequestExpired.selector);
@@ -251,7 +251,7 @@ contract ValidationRegistryTest is Test {
         validationRegistry.validationRequest(bobId, aliceId, testDataHash1);
         
         // Fast forward past expiration
-        vm.roll(block.number + validationRegistry.getExpirationSlots() + 1);
+        vm.warp(block.timestamp + validationRegistry.getExpirationSlots() + 1);
         
         (bool exists, bool pending) = validationRegistry.isValidationPending(testDataHash1);
         assertTrue(exists);
@@ -346,7 +346,7 @@ contract ValidationRegistryTest is Test {
         validationRegistry.validationRequest(bobId, aliceId, testDataHash1);
         
         // Fast forward past expiration
-        vm.roll(block.number + validationRegistry.getExpirationSlots() + 1);
+        vm.warp(block.timestamp + validationRegistry.getExpirationSlots() + 1);
         
         // Create new request with same data hash (should work)
         validationRegistry.validationRequest(charlieId, aliceId, testDataHash1);
@@ -354,7 +354,7 @@ contract ValidationRegistryTest is Test {
         // Verify the request was updated with new validator
         IValidationRegistry.Request memory request = validationRegistry.getValidationRequest(testDataHash1);
         assertEq(request.agentValidatorId, charlieId); // Should be Charlie now, not Bob
-        assertEq(request.timestamp, block.number);
+        assertEq(request.timestamp, block.timestamp);
         assertFalse(request.responded);
     }
 
@@ -384,7 +384,7 @@ contract ValidationRegistryTest is Test {
         validationRegistry.validationRequest(bobId, aliceId, testDataHash1);
         
         // Fast forward to exact expiration block
-        vm.roll(block.number + validationRegistry.getExpirationSlots());
+        vm.warp(block.timestamp + validationRegistry.getExpirationSlots());
         
         // Should still be valid at exact expiration block
         vm.prank(bob);

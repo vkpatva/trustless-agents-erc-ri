@@ -224,7 +224,7 @@ contract IntegrationTest is Test {
         
         // Fast forward past expiration
         uint256 expirationSlots = validationRegistry.getExpirationSlots();
-        vm.roll(block.number + expirationSlots + 1);
+        vm.warp(block.timestamp + expirationSlots + 1);
         
         // Verify it's no longer pending
         (exists, pending) = validationRegistry.isValidationPending(taskDataHash);

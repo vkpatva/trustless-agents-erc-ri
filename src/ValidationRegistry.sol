@@ -6,15 +6,15 @@ import "./interfaces/IIdentityRegistry.sol";
 
 /**
  * @title ValidationRegistry
- * @dev Implementation of the Validation Registry for ERC-XXXX Trustless Agents v0.3
+ * @dev Implementation of the Validation Registry for ERC-8004 Trustless Agents
  * @notice Provides hooks for requesting and recording independent validation
  * @author ChaosChain Labs
  */
 contract ValidationRegistry is IValidationRegistry {
     // ============ Constants ============
     
-    /// @dev Number of storage slots a validation request remains valid (default: 1000 blocks)
-    uint256 public constant EXPIRATION_SLOTS = 1000;
+    /// @dev Expiration time for validation requests (in seconds)
+    uint256 public constant EXPIRATION_TIME = 1000;
 
     // ============ State Variables ============
     
@@ -66,7 +66,7 @@ contract ValidationRegistry is IValidationRegistry {
         // Check if request already exists and is still valid
         IValidationRegistry.Request storage existingRequest = _validationRequests[dataHash];
         if (existingRequest.dataHash != bytes32(0)) {
-            if (block.number <= existingRequest.timestamp + EXPIRATION_SLOTS) {
+            if (block.timestamp <= existingRequest.timestamp + EXPIRATION_TIME) {
                 // Request still exists and is valid, just emit the event again
                 emit ValidationRequestEvent(agentValidatorId, agentServerId, dataHash);
                 return;
@@ -78,7 +78,7 @@ contract ValidationRegistry is IValidationRegistry {
             agentValidatorId: agentValidatorId,
             agentServerId: agentServerId,
             dataHash: dataHash,
-            timestamp: block.number,
+            timestamp: block.timestamp,
             responded: false
         });
         
@@ -103,7 +103,7 @@ contract ValidationRegistry is IValidationRegistry {
         }
         
         // Check if request has expired
-        if (block.number > request.timestamp + EXPIRATION_SLOTS) {
+        if (block.timestamp > request.timestamp + EXPIRATION_TIME) {
             revert RequestExpired();
         }
         
@@ -149,7 +149,7 @@ contract ValidationRegistry is IValidationRegistry {
         
         if (exists) {
             // Check if not expired and not responded
-            bool expired = block.number > request.timestamp + EXPIRATION_SLOTS;
+            bool expired = block.timestamp > request.timestamp + EXPIRATION_TIME;
             pending = !expired && !request.responded;
         }
     }
@@ -168,6 +168,6 @@ contract ValidationRegistry is IValidationRegistry {
      * @inheritdoc IValidationRegistry
      */
     function getExpirationSlots() external pure returns (uint256 slots) {
-        return EXPIRATION_SLOTS;
+        return EXPIRATION_TIME;
     }
 }

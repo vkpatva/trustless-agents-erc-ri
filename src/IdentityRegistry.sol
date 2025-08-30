@@ -5,7 +5,7 @@ import "./interfaces/IIdentityRegistry.sol";
 
 /**
  * @title IdentityRegistry
- * @dev Implementation of the Identity Registry for ERC-XXXX Trustless Agents v0.3
+ * @dev Implementation of the Identity Registry for ERC-8004 Trustless Agents
  * @notice Central registry for all agent identities with spam protection
  * @author ChaosChain Labs
  */
