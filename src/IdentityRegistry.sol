@@ -112,7 +112,9 @@ contract IdentityRegistry is IIdentityRegistry {
         
         // Validate new values if provided
         if (domainChanged) {
-            if (_domainToAgentId[newAgentDomain] != 0) {
+            // SECURITY: Normalize new domain for consistent checking
+            string memory normalizedNewDomain = _toLowercase(newAgentDomain);
+            if (_domainToAgentId[normalizedNewDomain] != 0) {
                 revert DomainAlreadyRegistered();
             }
         }
@@ -125,11 +127,14 @@ contract IdentityRegistry is IIdentityRegistry {
         
         // Update domain if provided
         if (domainChanged) {
-            // Remove old domain mapping
-            delete _domainToAgentId[agent.agentDomain];
-            // Set new domain
-            agent.agentDomain = newAgentDomain;
-            _domainToAgentId[newAgentDomain] = agentId;
+            // SECURITY: Remove old domain mapping using normalized version
+            string memory oldNormalizedDomain = _toLowercase(agent.agentDomain);
+            delete _domainToAgentId[oldNormalizedDomain];
+            
+            // SECURITY: Add new domain mapping using normalized version
+            string memory normalizedNewDomain = _toLowercase(newAgentDomain);
+            agent.agentDomain = newAgentDomain; // Store original case for display
+            _domainToAgentId[normalizedNewDomain] = agentId;
         }
         
         // Update address if provided

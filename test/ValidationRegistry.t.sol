@@ -104,15 +104,15 @@ contract ValidationRegistryTest is Test {
         // First request
         validationRegistry.validationRequest(bobId, aliceId, testDataHash1);
         
-        vm.expectEmit(true, true, true, false);
-        emit ValidationRequestEvent(bobId, aliceId, testDataHash1);
-        
-        // Second request with same data hash (should just emit event again)
+        // SECURITY: Second request with same data hash should NOT emit event (prevents griefing)
+        // This is a security improvement to prevent event spam attacks
         validationRegistry.validationRequest(bobId, aliceId, testDataHash1);
         
         // Should still have only one request
         IValidationRegistry.Request memory request = validationRegistry.getValidationRequest(testDataHash1);
         assertEq(request.dataHash, testDataHash1);
+        assertEq(request.agentValidatorId, bobId);
+        assertEq(request.agentServerId, aliceId);
     }
 
     function test_ValidationRequest_RevertInvalidDataHash() public {

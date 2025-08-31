@@ -337,4 +337,25 @@ contract IdentityRegistryTest is Test {
         assertEq(info2.agentDomain, "example.com");
         assertEq(info3.agentDomain, "example.com");
     }
+    
+    function test_Security_UpdateAgentDomainNormalization() public {
+        // Register with lowercase
+        vm.prank(alice);
+        uint256 agentId = registry.newAgent("example.com", alice);
+        
+        // Update to mixed case - should work correctly
+        vm.prank(alice);
+        registry.updateAgent(agentId, "UPDATED.COM", address(0));
+        
+        // Should be resolvable with any case
+        IIdentityRegistry.AgentInfo memory info1 = registry.resolveByDomain("updated.com");
+        IIdentityRegistry.AgentInfo memory info2 = registry.resolveByDomain("UPDATED.COM");
+        
+        assertEq(info1.agentId, agentId);
+        assertEq(info2.agentId, agentId);
+        
+        // Original domain should no longer resolve
+        vm.expectRevert(IIdentityRegistry.AgentNotFound.selector);
+        registry.resolveByDomain("example.com");
+    }
 }

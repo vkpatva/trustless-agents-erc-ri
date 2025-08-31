@@ -72,16 +72,19 @@ contract ValidationRegistry is IValidationRegistry {
         IValidationRegistry.Request storage existingRequest = _validationRequests[dataHash];
         if (existingRequest.dataHash != bytes32(0)) {
             if (block.timestamp <= existingRequest.timestamp + EXPIRATION_TIME) {
-                // SECURITY: Only emit event if the request is from the same validator
-                // Prevent misleading events from different validators
+                // SECURITY: Don't emit redundant events to prevent griefing
+                // Only allow the original requester to re-emit if needed
                 if (existingRequest.agentValidatorId == agentValidatorId && 
                     existingRequest.agentServerId == agentServerId) {
-                    emit ValidationRequestEvent(agentValidatorId, agentServerId, dataHash);
+                    // Request already exists - no need to emit event again
+                    // This prevents event spam griefing attacks
                 }
                 return;
             } else {
                 // SECURITY: Clear stale response data when request expires
                 delete _validationResponses[dataHash];
+                // SECURITY: Clear expired request to prevent unbounded growth
+                delete _validationRequests[dataHash];
             }
         }
         
