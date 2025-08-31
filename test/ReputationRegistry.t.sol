@@ -126,13 +126,11 @@ contract ReputationRegistryTest is Test {
         reputationRegistry.acceptFeedback(aliceId, bobId);
     }
 
-    function test_AcceptFeedback_SelfAuthorization() public {
-        // Agent authorizing feedback for their own services (valid use case)
+    function test_AcceptFeedback_RevertSelfFeedback() public {
+        // SECURITY: Self-feedback should be prevented to maintain integrity
         vm.prank(alice);
+        vm.expectRevert(IReputationRegistry.SelfFeedbackNotAllowed.selector);
         reputationRegistry.acceptFeedback(aliceId, aliceId);
-        
-        (bool isAuthorized,) = reputationRegistry.isFeedbackAuthorized(aliceId, aliceId);
-        assertTrue(isAuthorized);
     }
 
     // ============ Feedback Query Tests ============

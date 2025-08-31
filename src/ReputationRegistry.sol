@@ -54,10 +54,15 @@ contract ReputationRegistry is IReputationRegistry {
         // Get server agent info to check authorization
         IIdentityRegistry.AgentInfo memory serverAgent = identityRegistry.getAgent(agentServerId);
         
-        // Only the server agent can authorize feedback
-        if (msg.sender != serverAgent.agentAddress) {
-            revert UnauthorizedFeedback();
-        }
+            // Only the server agent can authorize feedback
+    if (msg.sender != serverAgent.agentAddress) {
+        revert UnauthorizedFeedback();
+    }
+    
+    // SECURITY: Prevent self-feedback to maintain integrity
+    if (agentClientId == agentServerId) {
+        revert SelfFeedbackNotAllowed();
+    }
         
         // Check if feedback is already authorized
         bytes32 existingAuthId = _clientServerToAuthId[agentClientId][agentServerId];
@@ -110,7 +115,7 @@ contract ReputationRegistry is IReputationRegistry {
         uint256 agentClientId,
         uint256 agentServerId
     ) private view returns (bytes32 feedbackAuthId) {
-        // Include block timestamp and transaction hash for uniqueness
+        // Include block timestamp, prevrandao, and sender for uniqueness
         feedbackAuthId = keccak256(
             abi.encodePacked(
                 agentClientId,

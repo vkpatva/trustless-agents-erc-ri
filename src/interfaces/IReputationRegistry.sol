@@ -24,6 +24,7 @@ interface IReputationRegistry {
     error UnauthorizedFeedback();
     error FeedbackAlreadyAuthorized();
     error InvalidAgentId();
+    error SelfFeedbackNotAllowed();
 
     // ============ Write Functions ============
     

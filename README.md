@@ -211,6 +211,7 @@ Current gas usage (optimized for efficiency):
 ### Attack Prevention
 - **Case-Sensitivity Protection**: Domain normalization prevents case-variance bypass attacks
 - **Self-Validation Prevention**: Agents cannot validate their own work to maintain integrity
+- **Self-Feedback Prevention**: Agents cannot authorize feedback for themselves to prevent reputation inflation
 - **Duplicate Prevention**: Domains and addresses can only be registered once
 - **Time-bounded Requests**: Validation requests prevent resource exhaustion with automatic expiration
 
@@ -224,11 +225,11 @@ Current gas usage (optimized for efficiency):
 - **Meta-transaction Compatible**: Uses `msg.sender` instead of deprecated `tx.origin`
 - **Post-merge Compatibility**: Uses `block.prevrandao` instead of deprecated `block.difficulty`
 - **Version Tracking**: All contracts include version constants for upgrade management
-- **Security Audited**: All identified vulnerabilities have been fixed and tested (latest: domain normalization, storage cleanup, event griefing prevention)
+- **Security Audited**: All identified vulnerabilities have been fixed and tested (latest: self-feedback prevention, documentation accuracy)
 
 ### Security Testing
 - **Comprehensive Security Tests**: Includes tests for all security fixes
-- **Attack Vector Coverage**: Tests for impersonation, case-sensitivity, and self-validation attacks
+- **Attack Vector Coverage**: Tests for impersonation, case-sensitivity, self-validation, and self-feedback attacks
 - **Edge Case Testing**: Covers boundary conditions and error scenarios
 
 ## Deployment Networks

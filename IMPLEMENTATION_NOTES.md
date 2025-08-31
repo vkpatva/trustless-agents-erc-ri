@@ -44,6 +44,7 @@ This repository contains the official reference implementation for **[ERC-8004 T
 
 ### Reputation System
 - Server-initiated feedback authorization ensures consent
+- Self-feedback prevention maintains reputation integrity
 - Unique authorization IDs prevent replay attacks
 - Support for multiple client-server relationships
 - Lightweight on-chain footprint
@@ -74,6 +75,7 @@ Current gas usage (first-time operations include storage setup costs):
 ### Attack Prevention
 - Case-insensitive domain normalization prevents bypass attacks
 - Self-validation prevention maintains validation integrity
+- Self-feedback prevention prevents reputation inflation
 - Duplicate prevention for domains and addresses
 - Time-bounded validation requests prevent resource exhaustion
 - Event griefing prevention reduces spam attacks
