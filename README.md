@@ -61,7 +61,7 @@ forge install
 # Build contracts
 forge build
 
-# Run all tests (82 tests, 100% pass rate)
+# Run all tests (83 tests, 100% pass rate)
 forge test
 
 # Run tests with gas reporting
@@ -161,7 +161,7 @@ interface IValidationRegistry {
 
 ## Testing
 
-Our comprehensive test suite includes **82 tests** with **100% pass rate**:
+Our comprehensive test suite includes **83 tests** with **100% pass rate**:
 
 ### Test Categories
 
@@ -224,7 +224,7 @@ Current gas usage (optimized for efficiency):
 - **Meta-transaction Compatible**: Uses `msg.sender` instead of deprecated `tx.origin`
 - **Post-merge Compatibility**: Uses `block.prevrandao` instead of deprecated `block.difficulty`
 - **Version Tracking**: All contracts include version constants for upgrade management
-- **Security Audited**: All identified vulnerabilities have been fixed and tested
+- **Security Audited**: All identified vulnerabilities have been fixed and tested (latest: domain normalization, storage cleanup, event griefing prevention)
 
 ### Security Testing
 - **Comprehensive Security Tests**: Includes tests for all security fixes
@@ -255,7 +255,7 @@ This reference implementation is maintained by the ERC-8004 working group. Contr
 2. Create a feature branch
 3. Make your changes
 4. Add comprehensive tests
-5. Ensure all tests pass: `forge test` (82 tests should pass)
+5. Ensure all tests pass: `forge test` (83 tests should pass)
 6. Submit a pull request
 
 ### Code Standards

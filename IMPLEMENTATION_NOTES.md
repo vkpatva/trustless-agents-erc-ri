@@ -11,7 +11,7 @@ This repository contains the official reference implementation for **[ERC-8004 T
 1. **`IdentityRegistry.sol`** - Central identity management
    - Unique agent ID assignment (sequential, starting from 1)
    - Domain and address mapping with duplicate prevention
-   - 0.005 ETH spam prevention fee (burned by being locked in contract)
+   - Case-insensitive domain normalization for security
    - Update functionality with proper authorization
 
 2. **`ReputationRegistry.sol`** - Lightweight feedback mechanism
@@ -21,10 +21,10 @@ This repository contains the official reference implementation for **[ERC-8004 T
    - Cross-agent relationship tracking
 
 3. **`ValidationRegistry.sol`** - Independent work validation
-   - Time-bounded validation requests (1000 blocks expiration)
+   - Time-bounded validation requests (1000 seconds expiration)
    - Score-based responses (0-100 scale)
-   - Prevention of double responses
-   - Automatic cleanup of expired requests
+   - Prevention of double responses and self-validation
+   - Automatic cleanup of expired requests and stale data
 
 ### Design Principles
 
@@ -38,7 +38,8 @@ This repository contains the official reference implementation for **[ERC-8004 T
 ### Identity Management
 - Sequential agent ID assignment prevents confusion
 - Dual mapping (domain ↔ agent ID, address ↔ agent ID) for efficient resolution
-- Spam protection via ETH burn mechanism
+- Case-insensitive domain normalization prevents impersonation attacks
+- Ownership verification prevents unauthorized registrations
 - Comprehensive validation with clear error messages
 
 ### Reputation System
@@ -57,7 +58,7 @@ This repository contains the official reference implementation for **[ERC-8004 T
 
 Current gas usage (first-time operations include storage setup costs):
 
-- **Agent Registration**: ~135k gas
+- **Agent Registration**: ~142k gas
 - **Feedback Authorization**: ~76k gas  
 - **Validation Request**: ~115k gas
 - **Validation Response**: ~78k gas
@@ -65,23 +66,27 @@ Current gas usage (first-time operations include storage setup costs):
 ## Security Considerations
 
 ### Access Control
-- Only agent owners can update their information
+- Only agent owners can register and update their information
 - Only designated validators can respond to validation requests
 - Only server agents can authorize feedback
+- Ownership verification prevents impersonation attacks
 
-### Spam Prevention
-- 0.005 ETH registration fee burned to prevent spam registrations
+### Attack Prevention
+- Case-insensitive domain normalization prevents bypass attacks
+- Self-validation prevention maintains validation integrity
 - Duplicate prevention for domains and addresses
 - Time-bounded validation requests prevent resource exhaustion
+- Event griefing prevention reduces spam attacks
 
 ### Data Integrity
 - Immutable agent IDs ensure consistent references
 - Event-driven architecture maintains audit trail
 - Input validation prevents invalid state transitions
+- Automatic cleanup of expired data prevents storage bloat
 
 ## Testing
 
-The implementation includes 80 comprehensive tests covering:
+The implementation includes 83 comprehensive tests covering:
 
 - **Unit Tests**: Individual contract functionality
 - **Integration Tests**: Cross-contract interactions
