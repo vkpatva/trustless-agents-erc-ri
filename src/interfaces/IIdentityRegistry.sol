@@ -8,48 +8,70 @@ pragma solidity ^0.8.19;
  */
 interface IIdentityRegistry {
     // ============ Events ============
-    
+
     /**
      * @dev Emitted when a new agent is registered
      */
-    event AgentRegistered(uint256 indexed agentId, string agentDomain, address agentAddress);
-    
+    event AgentRegistered(
+        uint256 indexed agentId,
+        string agentDomain,
+        address agentAddress
+    );
+
     /**
      * @dev Emitted when an agent's information is updated
      */
-    event AgentUpdated(uint256 indexed agentId, string agentDomain, address agentAddress);
+    event AgentUpdated(
+        uint256 indexed agentId,
+        string agentDomain,
+        address agentAddress
+    );
 
     // ============ Structs ============
-    
+
     /**
      * @dev Agent information structure
      */
     struct AgentInfo {
         uint256 agentId;
         string agentDomain;
+        string agentDID;
         address agentAddress;
     }
 
     // ============ Errors ============
-    
+
     error AgentNotFound();
     error UnauthorizedUpdate();
     error UnauthorizedRegistration();
     error InvalidDomain();
     error InvalidAddress();
+    error InvalidInput();
     error DomainAlreadyRegistered();
     error AddressAlreadyRegistered();
-
+    error DIDAlreadyRegistered();
+    error DIDNotRegistered();
     // ============ Write Functions ============
-    
+
     /**
      * @dev Register a new agent
      * @param agentDomain The domain where the agent's AgentCard is hosted
+     * @param agentDID Agent's DID
      * @param agentAddress The EVM address of the agent
      * @return agentId The unique identifier assigned to the agent
      */
-    function newAgent(string calldata agentDomain, address agentAddress) external returns (uint256 agentId);
-    
+    function newAgent(
+        string calldata agentDomain,
+        string calldata agentDID,
+        address agentAddress
+    ) external returns (uint256 agentId);
+
+    function updateAgent(
+        uint256 agentId,
+        string calldata newAgentDomain,
+        address newAgentAddress
+    ) external returns (bool success);
+
     /**
      * @dev Update an existing agent's information
      * @param agentId The agent's unique identifier
@@ -58,41 +80,42 @@ interface IIdentityRegistry {
      * @return success True if update was successful
      * @notice Only callable by the agent's current address or authorized delegate
      */
-    function updateAgent(
-        uint256 agentId, 
-        string calldata newAgentDomain, 
-        address newAgentAddress
-    ) external returns (bool success);
 
     // ============ Read Functions ============
-    
+
     /**
      * @dev Get agent information by ID
      * @param agentId The agent's unique identifier
      * @return agentInfo The agent's information
      */
-    function getAgent(uint256 agentId) external view returns (AgentInfo memory agentInfo);
-    
+    function getAgent(
+        uint256 agentId
+    ) external view returns (AgentInfo memory agentInfo);
+
     /**
      * @dev Resolve agent by domain
      * @param agentDomain The agent's domain
      * @return agentInfo The agent's information
      */
-    function resolveByDomain(string calldata agentDomain) external view returns (AgentInfo memory agentInfo);
-    
+    function resolveByDomain(
+        string calldata agentDomain
+    ) external view returns (AgentInfo memory agentInfo);
+
     /**
      * @dev Resolve agent by address
      * @param agentAddress The agent's address
      * @return agentInfo The agent's information
      */
-    function resolveByAddress(address agentAddress) external view returns (AgentInfo memory agentInfo);
-    
+    function resolveByAddress(
+        address agentAddress
+    ) external view returns (AgentInfo memory agentInfo);
+
     /**
      * @dev Get the total number of registered agents
      * @return count The total count of registered agents
      */
     function getAgentCount() external view returns (uint256 count);
-    
+
     /**
      * @dev Check if an agent ID exists
      * @param agentId The agent ID to check
@@ -100,5 +123,12 @@ interface IIdentityRegistry {
      */
     function agentExists(uint256 agentId) external view returns (bool exists);
 
-
+    /**
+     * @dev Resolve DID of the Agent
+     * @param agentDID, Agents's DID
+     * @return agentInfo
+     */
+    function resolveByDID(
+        string calldata agentDID
+    ) external view returns (AgentInfo memory agentInfo);
 }
