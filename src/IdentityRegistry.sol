@@ -2,60 +2,78 @@
 pragma solidity ^0.8.19;
 
 import "./interfaces/IIdentityRegistry.sol";
+import "./interfaces/IDIDValidator.sol";
 
 /**
  * @title IdentityRegistry
- * @dev Implementation of the Identity Registry for ERC-8004 Trustless Agents
- * @notice Central registry for all agent identities with spam protection
- * @author ChaosChain Labs
+ * @dev Central registry for ERC-8004 Trustless Agents with DID validation support.
+ * @notice This contract manages agent registrations, ensuring uniqueness of Ethereum addresses and DIDs.
+ *         DID validation is delegated to an external DIDValidator contract, making the registry modular
+ *         and upgradeable without needing to redeploy the core registry logic.
+ *
+ * Features:
+ * - One DID and one Ethereum address per agent (1:1 mapping).
+ * - Prevents duplicate DID or address registrations.
+ * - Ensures DIDs actually embed the claimed Ethereum address via DIDValidator.
+ * - Supports updating agent DID, address, and description with validation.
+ *
+ * Version: 1.3.0
+ * Author: Vkpatva - Zkred
  */
 contract IdentityRegistry is IIdentityRegistry {
     // ============ Constants ============
-
-    /// @dev Contract version for tracking implementation changes
-    string public constant VERSION = "1.0.0";
+    string public constant VERSION = "1.3.0";
 
     // ============ State Variables ============
-
-    /// @dev Counter for agent IDs
     uint256 private _agentIdCounter;
+    IDIDValidator public immutable didValidator;
 
-    /// @dev Mapping from agent ID to agent info
     mapping(uint256 => AgentInfo) private _agents;
-
-    /// @dev Mapping from domain to agent ID
-    mapping(string => uint256) private _domainToAgentId;
-
-    /// @dev Mapping from address to agent ID
     mapping(address => uint256) private _addressToAgentId;
-
-    /// @dev Mapping from DID to agent ID
     mapping(string => uint256) private _didToAgentId;
-    // ============ Constructor ============
 
-    constructor() {
-        // Start agent IDs from 1 (0 is reserved for "not found")
-        _agentIdCounter = 1;
+    // ============ Constructor ============
+    /**
+     * @param validator Address of the deployed DIDValidator contract
+     */
+    constructor(address validator) {
+        require(validator != address(0), "Invalid DIDValidator address");
+        didValidator = IDIDValidator(validator);
+        _agentIdCounter = 1; // Start agent IDs from 1
     }
 
     // ============ Write Functions ============
 
     /**
-     * @inheritdoc IIdentityRegistry
+     * @notice Register a new agent with a DID and Ethereum address.
+     * @dev DID must validate against the claimed address if provided.
+     * @param agentDID Decentralized Identifier (optional: can be empty string)
+     * @param agentAddress Ethereum address of the agent
+     * @param description Free-form description about the agent
+     * @return agentId The unique ID assigned to the agent
+     *
+     * Requirements:
+     * - Caller must be the same as `agentAddress`.
+     * - If `agentDID` is provided, it must:
+     *    - Embed `agentAddress` (verified via DIDValidator).
+     *    - Not already be registered.
+     * - `agentAddress` must not already be registered.
      */
     function newAgent(
-        string calldata agentDomain,
         string calldata agentDID,
-        address agentAddress
-    ) external returns (uint256 agentId) {
+        address agentAddress,
+        string calldata description
+    ) external override returns (uint256 agentId) {
         if (msg.sender != agentAddress) revert UnauthorizedRegistration();
-        if (bytes(agentDomain).length == 0 || bytes(agentDID).length == 0)
-            revert InvalidInput();
 
-        string memory normalizedDomain = _toLowercase(agentDomain);
-        if (_domainToAgentId[normalizedDomain] != 0)
-            revert DomainAlreadyRegistered();
-        if (_didToAgentId[agentDID] != 0) revert DIDAlreadyRegistered();
+        if (bytes(agentDID).length > 0) {
+            if (_didToAgentId[agentDID] != 0) revert DIDAlreadyRegistered();
+            // Validate DID structure and address binding
+            if (!didValidator.validateDID(agentDID, agentAddress)) {
+                revert DIDAddressMismatch();
+            }
+        }
+
         if (_addressToAgentId[agentAddress] != 0)
             revert AddressAlreadyRegistered();
 
@@ -63,167 +81,154 @@ contract IdentityRegistry is IIdentityRegistry {
 
         _agents[agentId] = AgentInfo(
             agentId,
-            agentDomain,
             agentDID,
-            agentAddress
+            agentAddress,
+            description
         );
-        _domainToAgentId[normalizedDomain] = agentId;
-        _didToAgentId[agentDID] = agentId;
+
+        if (bytes(agentDID).length > 0) {
+            _didToAgentId[agentDID] = agentId;
+        }
         _addressToAgentId[agentAddress] = agentId;
 
-        emit AgentRegistered(agentId, agentDomain, agentAddress);
+        emit AgentRegistered(agentId, agentAddress);
     }
 
     /**
-     * @inheritdoc IIdentityRegistry
+     * @notice Update an agent's DID, Ethereum address, or description.
+     * @param agentId The agent's unique identifier
+     * @param newAgentAddress New Ethereum address (zero = no change)
+     * @param newAgentDID New DID (empty string = clear DID)
+     * @param newDescription New description (empty string = no change)
+     * @return success True if update completed
+     *
+     * Requirements:
+     * - Caller must be the currently registered `agent.agentAddress`.
+     * - If new DID is provided, it must:
+     *    - Embed the address being used (old or new).
+     *    - Not already be registered.
+     * - New address (if provided) must not already be registered.
      */
     function updateAgent(
         uint256 agentId,
-        string calldata newAgentDomain,
-        address newAgentAddress
-    ) external returns (bool success) {
-        // Validate agent exists
+        address newAgentAddress,
+        string calldata newAgentDID,
+        string calldata newDescription
+    ) external override returns (bool success) {
         AgentInfo storage agent = _agents[agentId];
-        if (agent.agentId == 0) {
-            revert AgentNotFound();
-        }
+        if (agent.agentId == 0) revert AgentNotFound();
+        if (msg.sender != agent.agentAddress) revert UnauthorizedUpdate();
 
-        // Check authorization
-        if (msg.sender != agent.agentAddress) {
-            revert UnauthorizedUpdate();
-        }
-
-        bool domainChanged = bytes(newAgentDomain).length > 0;
         bool addressChanged = newAgentAddress != address(0);
+        bool descriptionChanged = bytes(newDescription).length > 0;
 
-        // Validate new values if provided
-        if (domainChanged) {
-            // SECURITY: Normalize new domain for consistent checking
-            string memory normalizedNewDomain = _toLowercase(newAgentDomain);
-            if (_domainToAgentId[normalizedNewDomain] != 0) {
-                revert DomainAlreadyRegistered();
-            }
-        }
+        // Address to validate DID against
+        address addressForDIDValidation = addressChanged
+            ? newAgentAddress
+            : agent.agentAddress;
 
+        // --- Address update ---
         if (addressChanged) {
-            if (_addressToAgentId[newAgentAddress] != 0) {
+            if (_addressToAgentId[newAgentAddress] != 0)
                 revert AddressAlreadyRegistered();
-            }
-        }
 
-        // Update domain if provided
-        if (domainChanged) {
-            // SECURITY: Remove old domain mapping using normalized version
-            string memory oldNormalizedDomain = _toLowercase(agent.agentDomain);
-            delete _domainToAgentId[oldNormalizedDomain];
-
-            // SECURITY: Add new domain mapping using normalized version
-            string memory normalizedNewDomain = _toLowercase(newAgentDomain);
-            agent.agentDomain = newAgentDomain; // Store original case for display
-            _domainToAgentId[normalizedNewDomain] = agentId;
-        }
-
-        // Update address if provided
-        if (addressChanged) {
-            // Remove old address mapping
             delete _addressToAgentId[agent.agentAddress];
-            // Set new address
             agent.agentAddress = newAgentAddress;
             _addressToAgentId[newAgentAddress] = agentId;
         }
 
-        emit AgentUpdated(agentId, agent.agentDomain, agent.agentAddress);
+        // --- DID update ---
+        {
+            if (bytes(agent.agentDID).length > 0) {
+                delete _didToAgentId[agent.agentDID];
+            }
+
+            if (bytes(newAgentDID).length > 0) {
+                if (
+                    !didValidator.validateDID(
+                        newAgentDID,
+                        addressForDIDValidation
+                    )
+                ) {
+                    revert DIDAddressMismatch();
+                }
+                if (_didToAgentId[newAgentDID] != 0)
+                    revert DIDAlreadyRegistered();
+                agent.agentDID = newAgentDID;
+                _didToAgentId[newAgentDID] = agentId;
+            } else {
+                agent.agentDID = "";
+            }
+        }
+
+        // --- Description update ---
+        if (descriptionChanged) {
+            agent.description = newDescription;
+        }
+
+        emit AgentUpdated(
+            agentId,
+            agent.agentAddress,
+            agent.agentDID,
+            agent.description
+        );
+
+        return true;
+    }
+
+    /**
+     * @notice Update agent description only.
+     * @param agentId The agent's unique identifier
+     * @param newDescription The new description string
+     * @return success True if update completed
+     *
+     * Requirements:
+     * - Caller must be the registered `agent.agentAddress`.
+     */
+    function updateDescription(
+        uint256 agentId,
+        string calldata newDescription
+    ) external returns (bool success) {
+        AgentInfo storage agent = _agents[agentId];
+        if (agent.agentId == 0) revert AgentNotFound();
+        if (msg.sender != agent.agentAddress) revert UnauthorizedUpdate();
+
+        agent.description = newDescription;
         return true;
     }
 
     // ============ Read Functions ============
 
-    /**
-     * @inheritdoc IIdentityRegistry
-     */
     function getAgent(
         uint256 agentId
-    ) external view returns (AgentInfo memory agentInfo) {
+    ) external view override returns (AgentInfo memory agentInfo) {
         agentInfo = _agents[agentId];
-        if (agentInfo.agentId == 0) {
-            revert AgentNotFound();
-        }
+        if (agentInfo.agentId == 0) revert AgentNotFound();
     }
 
-    /**
-     * @inheritdoc IIdentityRegistry
-     */
-    function resolveByDomain(
-        string calldata agentDomain
-    ) external view returns (AgentInfo memory agentInfo) {
-        // SECURITY: Normalize domain for lookup to prevent case-variance bypass
-        string memory normalizedDomain = _toLowercase(agentDomain);
-        uint256 agentId = _domainToAgentId[normalizedDomain];
-        if (agentId == 0) {
-            revert AgentNotFound();
-        }
-        agentInfo = _agents[agentId];
-    }
-
-    /**
-     * @inheritdoc IIdentityRegistry
-     */
     function resolveByAddress(
         address agentAddress
-    ) external view returns (AgentInfo memory agentInfo) {
+    ) external view override returns (AgentInfo memory agentInfo) {
         uint256 agentId = _addressToAgentId[agentAddress];
-        if (agentId == 0) {
-            revert AgentNotFound();
-        }
+        if (agentId == 0) revert AgentNotFound();
         agentInfo = _agents[agentId];
     }
 
     function resolveByDID(
         string calldata agentDID
-    ) external view returns (AgentInfo memory agentInfo) {
+    ) external view override returns (AgentInfo memory agentInfo) {
         uint256 agentId = _didToAgentId[agentDID];
-        if (agentId == 0) {
-            revert DIDNotRegistered();
-        }
+        if (agentId == 0) revert DIDNotRegistered();
         agentInfo = _agents[agentId];
     }
 
-    /**
-     * @inheritdoc IIdentityRegistry
-     */
-    function getAgentCount() external view returns (uint256 count) {
-        return _agentIdCounter - 1; // Subtract 1 because we start from 1
+    function getAgentCount() external view override returns (uint256 count) {
+        return _agentIdCounter - 1;
     }
 
-    /**
-     * @inheritdoc IIdentityRegistry
-     */
-    function agentExists(uint256 agentId) external view returns (bool exists) {
+    function agentExists(
+        uint256 agentId
+    ) external view override returns (bool exists) {
         return _agents[agentId].agentId != 0;
-    }
-
-    // ============ Internal Functions ============
-
-    /**
-     * @dev Converts a string to lowercase to prevent case-variance bypass attacks
-     * @param str The input string to convert
-     * @return result The lowercase version of the input string
-     */
-    function _toLowercase(
-        string memory str
-    ) internal pure returns (string memory result) {
-        bytes memory strBytes = bytes(str);
-        bytes memory resultBytes = new bytes(strBytes.length);
-
-        for (uint256 i = 0; i < strBytes.length; i++) {
-            // Convert A-Z to a-z
-            if (strBytes[i] >= 0x41 && strBytes[i] <= 0x5A) {
-                resultBytes[i] = bytes1(uint8(strBytes[i]) + 32);
-            } else {
-                resultBytes[i] = strBytes[i];
-            }
-        }
-
-        result = string(resultBytes);
     }
 }

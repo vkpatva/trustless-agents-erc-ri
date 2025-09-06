@@ -1,134 +1,139 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-/**
- * @title IIdentityRegistry
- * @dev Interface for the Identity Registry as defined in ERC-8004 Trustless Agents
- * @notice This contract serves as the central registry for all agent identities
- */
+/// @title IIdentityRegistry
+/// @notice Interface for a decentralized identity registry for ERC-8004 Trustless Agents
+/// @dev Provides functions to register, update, and resolve agent identities by ID, address, or DID
 interface IIdentityRegistry {
     // ============ Events ============
 
-    /**
-     * @dev Emitted when a new agent is registered
-     */
-    event AgentRegistered(
-        uint256 indexed agentId,
-        string agentDomain,
-        address agentAddress
-    );
+    /// @notice Emitted when a new agent is registered
+    /// @param agentId Unique identifier of the agent
+    /// @param agentAddress Ethereum address associated with the agent
+    event AgentRegistered(uint256 indexed agentId, address agentAddress);
 
-    /**
-     * @dev Emitted when an agent's information is updated
-     */
+    /// @notice Emitted when an agent’s information is updated
+    /// @param agentId Unique identifier of the agent
+    /// @param agentAddress Updated Ethereum address of the agent
+    /// @param agentDID Updated DID string of the agent
+    /// @param description Updated human-readable description of the agent
     event AgentUpdated(
         uint256 indexed agentId,
-        string agentDomain,
-        address agentAddress
+        address agentAddress,
+        string agentDID,
+        string description
     );
 
     // ============ Structs ============
 
-    /**
-     * @dev Agent information structure
-     */
+    /// @notice Struct holding information about a registered agent
     struct AgentInfo {
-        uint256 agentId;
-        string agentDomain;
-        string agentDID;
-        address agentAddress;
+        uint256 agentId; // Unique identifier for the agent
+        string agentDID; // Optional DID string (can be empty if not set)
+        address agentAddress; // Ethereum address of the agent
+        string description; // Human-readable description of the agent
     }
 
     // ============ Errors ============
 
+    /// @notice Thrown when an agent is not found
     error AgentNotFound();
+
+    /// @notice Thrown when the caller is not authorized to update an agent
     error UnauthorizedUpdate();
+
+    /// @notice Thrown when the caller is not authorized to register an agent
     error UnauthorizedRegistration();
-    error InvalidDomain();
+
+    /// @notice Thrown when an invalid (zero) address is provided
     error InvalidAddress();
+
+    /// @notice Thrown when input values are invalid (e.g., empty required fields)
     error InvalidInput();
-    error DomainAlreadyRegistered();
+
+    /// @notice Thrown when the provided address is already registered
     error AddressAlreadyRegistered();
+
+    /// @notice Thrown when the provided DID is already registered
     error DIDAlreadyRegistered();
+
+    /// @notice Thrown when a DID is expected but not registered
     error DIDNotRegistered();
+
+    /// @notice Thrown when the provided DID does not match the stored address
+    error DIDAddressMismatch();
+
     // ============ Write Functions ============
 
     /**
-     * @dev Register a new agent
-     * @param agentDomain The domain where the agent's AgentCard is hosted
-     * @param agentDID Agent's DID
-     * @param agentAddress The EVM address of the agent
-     * @return agentId The unique identifier assigned to the agent
+     * @notice Register a new agent in the registry
+     * @dev Reverts if the address or DID is already registered
+     * @param agentDID DID string associated with the agent (can be optional but must be unique if provided)
+     * @param agentAddress Ethereum address to associate with the agent
+     * @param description Human-readable description of the agent
+     * @return agentId The unique identifier assigned to the newly registered agent
      */
     function newAgent(
-        string calldata agentDomain,
         string calldata agentDID,
-        address agentAddress
+        address agentAddress,
+        string calldata description
     ) external returns (uint256 agentId);
 
+    /**
+     * @notice Update an existing agent’s information
+     * @dev Caller must be authorized to update the agent
+     * @param agentId Unique identifier of the agent
+     * @param newAgentAddress New Ethereum address (use zero address to leave unchanged)
+     * @param newAgentDID New DID string (use empty string to clear DID)
+     * @param newDescription New description (use empty string to leave unchanged)
+     * @return success True if update was successful
+     */
     function updateAgent(
         uint256 agentId,
-        string calldata newAgentDomain,
-        address newAgentAddress
+        address newAgentAddress,
+        string calldata newAgentDID,
+        string calldata newDescription
     ) external returns (bool success);
-
-    /**
-     * @dev Update an existing agent's information
-     * @param agentId The agent's unique identifier
-     * @param newAgentDomain New domain (empty string to keep current)
-     * @param newAgentAddress New address (zero address to keep current)
-     * @return success True if update was successful
-     * @notice Only callable by the agent's current address or authorized delegate
-     */
 
     // ============ Read Functions ============
 
     /**
-     * @dev Get agent information by ID
-     * @param agentId The agent's unique identifier
-     * @return agentInfo The agent's information
+     * @notice Fetch details of an agent by ID
+     * @param agentId Unique identifier of the agent
+     * @return agentInfo Struct containing the agent’s full information
      */
     function getAgent(
         uint256 agentId
     ) external view returns (AgentInfo memory agentInfo);
 
     /**
-     * @dev Resolve agent by domain
-     * @param agentDomain The agent's domain
-     * @return agentInfo The agent's information
-     */
-    function resolveByDomain(
-        string calldata agentDomain
-    ) external view returns (AgentInfo memory agentInfo);
-
-    /**
-     * @dev Resolve agent by address
-     * @param agentAddress The agent's address
-     * @return agentInfo The agent's information
+     * @notice Resolve agent details by Ethereum address
+     * @param agentAddress Ethereum address associated with the agent
+     * @return agentInfo Struct containing the agent’s full information
      */
     function resolveByAddress(
         address agentAddress
     ) external view returns (AgentInfo memory agentInfo);
 
     /**
-     * @dev Get the total number of registered agents
-     * @return count The total count of registered agents
-     */
-    function getAgentCount() external view returns (uint256 count);
-
-    /**
-     * @dev Check if an agent ID exists
-     * @param agentId The agent ID to check
-     * @return exists True if the agent exists
-     */
-    function agentExists(uint256 agentId) external view returns (bool exists);
-
-    /**
-     * @dev Resolve DID of the Agent
-     * @param agentDID, Agents's DID
-     * @return agentInfo
+     * @notice Resolve agent details by DID
+     * @param agentDID DID string associated with the agent
+     * @return agentInfo Struct containing the agent’s full information
      */
     function resolveByDID(
         string calldata agentDID
     ) external view returns (AgentInfo memory agentInfo);
+
+    /**
+     * @notice Get the total number of registered agents
+     * @return count Number of agents currently registered
+     */
+    function getAgentCount() external view returns (uint256 count);
+
+    /**
+     * @notice Check if an agent exists by ID
+     * @param agentId Unique identifier of the agent
+     * @return exists True if the agent exists, false otherwise
+     */
+    function agentExists(uint256 agentId) external view returns (bool exists);
 }
