@@ -10,7 +10,11 @@ interface IIdentityRegistry {
     /// @notice Emitted when a new agent is registered
     /// @param agentId Unique identifier of the agent
     /// @param agentAddress Ethereum address associated with the agent
-    event AgentRegistered(uint256 indexed agentId, address agentAddress);
+    event AgentRegistered(
+        uint256 indexed agentId,
+        address indexed agentAddress,
+        string indexed agentDID
+    );
 
     /// @notice Emitted when an agent’s information is updated
     /// @param agentId Unique identifier of the agent
@@ -19,11 +23,13 @@ interface IIdentityRegistry {
     /// @param description Updated human-readable description of the agent
     event AgentUpdated(
         uint256 indexed agentId,
+        string indexed agentDID,
         address agentAddress,
-        string agentDID,
         string description
     );
 
+    // todo : complete documentation
+    event AgentDeveloper(uint256 indexed agentId, string developerDID);
     // ============ Structs ============
 
     /// @notice Struct holding information about a registered agent
@@ -62,6 +68,18 @@ interface IIdentityRegistry {
 
     /// @notice Thrown when the provided DID does not match the stored address
     error DIDAddressMismatch();
+
+    // @notice Thrown when the signature provided by Agent is not valid
+    error InvalidAgentSignature();
+
+    // @notice Thrown when the developer DID is not valid
+    error InvalidDeveloperDID();
+
+    // @notice Thrown when the signature is expired
+    error SignatureExpired();
+
+    // @notice Thrown when Developer DID is not found
+    error DeveloperDIDAbsent();
 
     // ============ Write Functions ============
 
