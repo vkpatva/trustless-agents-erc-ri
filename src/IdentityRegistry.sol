@@ -59,7 +59,7 @@ contract IdentityRegistry is IIdentityRegistry, EIP712 {
     // ============ EIP-712 ============
     bytes32 private constant AGENT_TYPEHASH =
         keccak256(
-            "AgentRegistration(string agentDID,address agentAddress,string description,uint256 nonce,uint256 expiry)"
+            "AgentRegistration(string developerDID,string agentDID,address agentAddress,string description,uint256 nonce,uint256 expiry)"
         );
 
     mapping(address => uint256) public nonces;
@@ -139,6 +139,7 @@ contract IdentityRegistry is IIdentityRegistry, EIP712 {
         // Step 2: Verify signature
         _verifyAgentSignature(
             agentDID,
+            developerDID,
             agentAddress,
             description,
             expiry,
@@ -232,6 +233,7 @@ contract IdentityRegistry is IIdentityRegistry, EIP712 {
      */
     function _verifyAgentSignature(
         string calldata agentDID,
+        string calldata developerDID,
         address agentAddress,
         string calldata description,
         uint256 expiry,
@@ -247,6 +249,7 @@ contract IdentityRegistry is IIdentityRegistry, EIP712 {
         bytes32 structHash = keccak256(
             abi.encode(
                 AGENT_TYPEHASH,
+                keccak256(bytes(developerDID)),
                 keccak256(bytes(agentDID)),
                 agentAddress,
                 keccak256(bytes(description)),

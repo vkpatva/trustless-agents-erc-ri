@@ -6,52 +6,75 @@ import {console} from "forge-std/console.sol";
 import "../src/IdentityRegistry.sol";
 
 contract RegisterAgentByDeveloper is Script {
-    // Match the typehash used in your contract
-    bytes32 private constant AGENT_CONSENT_TYPEHASH =
+    // Must match contract
+    bytes32 private constant AGENT_TYPEHASH =
         keccak256(
-            "AgentConsent(string agentDID,address agentAddress,string description,uint256 expiry)"
+            "AgentRegistration(string developerDID,string agentDID,address agentAddress,string description,uint256 nonce,uint256 expiry)"
+        );
+
+    // EIP-712 Domain typehash
+    bytes32 private constant EIP712DOMAIN_TYPEHASH =
+        keccak256(
+            "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
         );
 
     function run() external {
-        // Developer (sends tx)
+        // === Keys ===
         uint256 developerKey = vm.envUint("DEVELOPER_KEY");
         address developer = vm.addr(developerKey);
 
-        // Agent (signs)
         uint256 agentKey = vm.envUint("AGENT_KEY");
         address agent = vm.addr(agentKey);
 
-        // Inputs
+        // === Inputs ===
         address identityRegistryAddress = vm.envAddress("IDENTITY_REGISTRY");
         string memory developerDid = vm.envString("DEVELOPER_DID");
         string memory agentDid = vm.envString("AGENT_DID");
         string memory description = vm.envString("AGENT_DESCRIPTION");
         uint256 expiry = block.timestamp + 1 days;
 
-        // Build struct hash
+        IdentityRegistry identityRegistry = IdentityRegistry(
+            identityRegistryAddress
+        );
+
+        // === Nonce ===
+        uint256 nonce = identityRegistry.nonces(agent);
+
+        // === Struct hash (must match contract) ===
         bytes32 structHash = keccak256(
             abi.encode(
-                AGENT_CONSENT_TYPEHASH,
+                AGENT_TYPEHASH,
+                keccak256(bytes(developerDid)), // 👈 now included
                 keccak256(bytes(agentDid)),
                 agent,
                 keccak256(bytes(description)),
+                nonce,
                 expiry
             )
         );
 
-        // Normally _hashTypedDataV4(domain, structHash), but we just sign structHash
-        bytes32 digest = structHash;
+        // === Domain separator ===
+        bytes32 domainSeparator = keccak256(
+            abi.encode(
+                EIP712DOMAIN_TYPEHASH,
+                keccak256(bytes("IdentityRegistry")), // SIGNING_DOMAIN
+                keccak256(bytes("1")), // SIGNATURE_VERSION
+                block.chainid,
+                identityRegistryAddress
+            )
+        );
 
-        // Sign with agent key
+        // === Final digest ===
+        bytes32 digest = keccak256(
+            abi.encodePacked("\x19\x01", domainSeparator, structHash)
+        );
+
+        // === Sign with agent key ===
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(agentKey, digest);
         bytes memory sig = abi.encodePacked(r, s, v);
 
-        // Broadcast as developer
+        // === Broadcast as developer ===
         vm.startBroadcast(developerKey);
-
-        IdentityRegistry identityRegistry = IdentityRegistry(
-            identityRegistryAddress
-        );
 
         uint256 agentId = identityRegistry.newAgentByDeveloperDID(
             developerDid,
